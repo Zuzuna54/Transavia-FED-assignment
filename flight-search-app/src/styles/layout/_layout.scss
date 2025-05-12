@@ -1,5 +1,7 @@
 // Layout Styles (e.g., Header, Footer, Grid)
 
+@use '../abstracts/mixins'; // Import mixins to use them
+
 // Example:
 .container {
     max-width: 1200px;
@@ -8,33 +10,33 @@
 }
 
 .flex-row {
-    @include flex-row;
+    @include mixins.flex-row;
 }
 
 .flex-column {
-    @include flex-column;
+    @include mixins.flex-column;
 }
 
 .flex-row-center {
-    @include flex-row-center;
+    @include mixins.flex-row-center;
 }
 
 .flex-column-center {
-    @include flex-column-center;
+    @include mixins.flex-column-center;
 }
 
 .flex-row-between {
-    @include flex-row-between;
+    @include mixins.flex-row-between;
 }
 
 .flex-column-between {
-    @include flex-column-between;
+    @include mixins.flex-column-between;
 }
 
 .flex-row-around {
-    @include flex-row-around;
+    @include mixins.flex-row-around;
 }
 
 .flex-column-around {
-    @include flex-column-around;
+    @include mixins.flex-column-around;
 }
