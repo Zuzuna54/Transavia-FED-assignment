@@ -1,52 +1,68 @@
-# Phase 10: Final Review, Cleanup & Documentation
+# Phase 10: Final Review, Optimization & Documentation
 
-**Goal:** Ensure code quality, remove unused code, add necessary comments/documentation, and prepare the project for presentation/submission.
+**Goal:** Ensure the final application meets all requirements, adheres to senior-level quality standards (performance, accessibility, code quality), is well-documented, and ready for presentation/deployment.
 
 **Sub-tasks:**
 
-1.  **Task 10.1: Code Review and Refactoring**
+1.  **Task 10.1: Code Quality & Best Practices Review**
 
-    - **Description:** Review all code for clarity, consistency, performance, and adherence to best practices. Refactor where necessary.
-    - **Expected Outcome:** Clean, maintainable, and performant codebase.
+    - **Description:** Conduct a thorough code review focusing on: adherence to SOLID principles (where applicable), TypeScript best practices (strictness, types over `any`), React/Next.js conventions (hooks rules, component structure), code clarity, consistency, and removal of technical debt introduced earlier.
+    - **Expected Outcome:** High-quality, maintainable, and understandable codebase.
+    - **Affected:** Entire codebase (`src/`).
+    - **Development:** Use static analysis tools (ESLint, TS compiler). Perform manual review focusing on logic complexity, naming, and modularity. Refactor complex components or functions.
+    - **References:** All previous phases, Phase 1 (ESLint/TS config), [Web Search Results on Best Practices](https://medium.com/@PedalsUp/mastering-next-js-best-practices-for-clean-scalable-and-type-safe-development-626257980e60).
+
+2.  **Task 10.2: Performance Audit & Optimization**
+
+    - **Description:** Analyze application performance. Check Next.js build output for page sizes. Use browser developer tools (Lighthouse, Profiler) to identify bottlenecks (rendering performance, large component re-renders). Optimize where necessary (e.g., `React.memo`, `useCallback`, code splitting with `next/dynamic` if components become large).
+    - **Expected Outcome:** Optimized application with good Lighthouse scores (Performance, Best Practices, SEO). Minimized bundle sizes.
+    - **Affected:** Codebase (`src/`), Next.js configuration.
+    - **Development:** Run `npm run build`. Check terminal output. Run Lighthouse in Chrome DevTools. Profile component rendering. Apply optimization techniques cautiously.
+    - **References:** [Next.js Analyzers](https://nextjs.org/docs/advanced-features/analyzing-bundles), [React DevTools Profiler](https://reactjs.org/blog/2018/09/10/introducing-the-react-profiler.html).
+
+3.  **Task 10.3: Accessibility Audit (WCAG)**
+
+    - **Description:** Perform an accessibility audit using tools like axe DevTools and manual checks (keyboard navigation, screen reader testing). Ensure compliance with WCAG 2.1 AA standards.
+    - **Expected Outcome:** Application is usable by people with diverse abilities. Good axe DevTools score.
+    - **Affected:** Components (`src/components/`), Pages (`src/pages/`).
+    - **Development:** Install and run axe DevTools browser extension. Test keyboard navigation (tab order, focus visibility). Use a screen reader (VoiceOver, NVDA) for basic checks. Remediate issues found.
+    - **References:** Phase 7 (Results Accessibility), Phase 8 (Theming), [WCAG Guidelines](https://www.w3.org/WAI/standards-guidelines/wcag/).
+
+4.  **Task 10.4: Final Manual Cross-Browser/Device Testing**
+
+    - **Description:** Conduct thorough end-to-end testing on major browsers (Chrome, Firefox, Safari) and different device viewports (desktop, tablet, mobile) to catch any inconsistencies in layout, functionality, or styling.
+    - **Expected Outcome:** Consistent and stable user experience across supported environments.
+    - **Affected:** Running application.
+    - **Development:** Manually test all user flows (search, validation, no results) on target browsers/devices using developer tools or actual devices.
+    - **References:** Phase 8 (Responsiveness).
+
+5.  **Task 10.5: Code Cleanup & Finalization**
+
+    - **Description:** Remove all `console.log` statements, commented-out code, unused variables/imports, and temporary test code. Ensure all dependencies are necessary.
+    - **Expected Outcome:** A clean, production-ready codebase.
     - **Affected:** Entire codebase.
-    - **Development:** Systematically go through components, utilities, pages. Look for repetitive code, overly complex functions, unclear variable names, etc. Apply principles like DRY (Don't Repeat Yourself).
-    - **References:** All previous phases, `assignment.md` (clean code requirement).
+    - **Development:** Use ESLint (`no-unused-vars`, `no-console`). Perform manual search for comments/logs. Run `npm prune` or `yarn autoclean` if applicable.
+    - **References:** Task 10.1.
 
-2.  **Task 10.2: Remove Unused Code and Console Logs**
+6.  **Task 10.6: Comprehensive Documentation (`README.md`)**
 
-    - **Description:** Identify and remove any dead code, unused variables, commented-out old code, and temporary console log statements.
-    - **Expected Outcome:** A lean codebase with no superfluous elements.
-    - **Affected:** Entire codebase.
-    - **Development:** Use linters, IDE tools, or manual inspection to find unused code. Search for `console.log` and remove.
+    - **Description:** Create a detailed `README.md` file including: Project overview, Features, Setup instructions (prerequisites, installation), Running the development server, Running tests (including coverage), Tech stack used, Project structure overview, Design decisions (e.g., state management choice, SSG usage), Known limitations or future improvements.
+    - **Expected Outcome:** A comprehensive README that allows anyone to understand, set up, run, and test the project.
+    - **Affected:** New/Updated `README.md` file.
+    - **Development:** Write clear, concise sections covering all the points above.
     - **References:** All previous phases.
 
-3.  **Task 10.3: Add Code Comments and Documentation**
+7.  **Task 10.7: Verify All Assignment Requirements Met**
 
-    - **Description:** Add comments to explain complex logic, non-obvious decisions, or component props. Update or create a `README.md` with setup and run instructions.
-    - **Expected Outcome:** Code is easier to understand. Project is easy to set up and run by others.
-    - **Affected:** Code files, `README.md`.
-    - **Development:** Write JSDoc/TSDoc for functions and components. Explain any intricate parts. Update README with clear instructions on installation, running dev server, running tests.
-    - **References:** All previous phases.
-
-4.  **Task 10.4: Final Manual Testing and QA**
-
-    - **Description:** Perform thorough manual testing of the application, covering all user flows, input variations, and edge cases.
-    - **Expected Outcome:** Application is stable and behaves as expected under various conditions.
-    - **Affected:** The running application.
-    - **Development:** Test form submissions with valid/invalid data, different airport selections, various dates, empty results, etc. Check responsiveness (Task 8.6).
-    - **References:** All functional phases (3-7), Phase 8 (Styling).
-
-5.  **Task 10.5: Check All Assignment Requirements**
-
-    - **Description:** Re-read `assignment.md` and ensure all stated requirements (Next.js, TypeScript, unit tests, data usage) have been met.
-    - **Expected Outcome:** Full compliance with the assignment brief.
-    - **Affected:** The entire project delivery.
-    - **Development:** Create a checklist from `assignment.md` and verify each point.
+    - **Description:** Systematically review the `assignment.md` requirements against the final application: Next.js, TypeScript, Unit Tests, Form functionality, Data usage (JSON files, airport names, price field), Styling library use, Clean code, Performance considerations.
+    - **Expected Outcome:** Confirmation that all mandatory requirements and desirable qualities are addressed.
+    - **Affected:** Final project state.
+    - **Development:** Create a checklist from `assignment.md` and verify each item against the code and running application.
     - **References:** `assignment.md`.
 
-6.  **Task 10.6: Prepare for Presentation (If Applicable)**
-    - **Description:** If the project needs to be presented, prepare talking points, consider demo flows, and ensure the application runs smoothly in the presentation environment.
-    - **Expected Outcome:** A well-prepared presentation of the project.
-    - **Affected:** N/A (Process task).
-    - **Development:** Outline key features, challenges, and solutions. Practice the demo.
-    - **References:** `assignment.md` (mentions presentation at interview).
+8.  **Task 10.8: Prepare for Presentation/Handover**
+    - **Description:** Prepare presentation materials or talking points as mentioned in `assignment.md`. Ensure the project runs smoothly for a demo. Create a clean Git commit history if version control was used.
+    - **Expected Outcome:** Project ready for evaluation or interview discussion.
+    - **Affected:** Presentation materials, Git repository (if used).
+    - **Development:** Outline demo flow. Practice explaining code structure and design choices. Ensure a final, clean commit.
+    - **References:** `assignment.md`.

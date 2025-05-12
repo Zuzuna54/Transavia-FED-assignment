@@ -1,44 +1,52 @@
-# Phase 6: Form Submission & Flight Filtering Logic
+# Phase 6: Flight Filtering Logic & State Management
 
-**Goal:** Implement the logic to filter flights based on form input upon valid submission.
+**Goal:** Implement efficient flight filtering based on validated form criteria, manage application state for search results and loading indicators, and ensure a clean separation of concerns.
 
 **Sub-tasks:**
 
-1.  **Task 6.1: Pass Flight Data to Page/Component**
+1.  **Task 6.1: Define Search Criteria Type**
 
-    - **Description:** Load the `flights-from-AMS.json` data (using methods from Phase 2) on the main page and make it available for filtering.
-    - **Expected Outcome:** Flight data (e.g., `Flight[]`) is accessible within the page component (`pages/index.tsx`).
-    - **Affected:** `pages/index.tsx`.
-    - **Development:** Use `getStaticProps` or `getServerSideProps` alongside airport data loading (Task 4.1). Load flights using the utility from Task 2.3.
-    - **References:** Phase 2 (Data Loading), Task 4.1.
+    - **Description:** Define a clear TypeScript type for the search criteria object that the form passes to the filtering logic.
+    - **Expected Outcome:** A type like `interface FlightSearchCriteria { originCode: string; destinationCode: string; departureDate: Date; }` in `src/types/data.ts` (or form component file).
+    - **Affected:** `src/types/data.ts`, `src/components/organisms/FlightSearchForm/FlightSearchForm.tsx`, `src/pages/index.tsx`.
+    - **Development:** Create the interface. Ensure `FlightSearchForm` passes an object of this type (Task 5.5).
+    - **References:** Task 2.1, Task 5.5.
 
-2.  **Task 6.2: Lift State Up / Callback Mechanism**
+2.  **Task 6.2: Page-Level State for Filtered Flights & Loading**
 
-    - **Description:** Modify the `FlightSearchForm` to communicate the submitted (and validated) form data (origin code, destination code, date) back to the parent page component (`pages/index.tsx`).
-    - **Expected Outcome:** The main page receives the search criteria upon successful form submission.
-    - **Affected:** `pages/index.tsx`, `components/FlightSearchForm.tsx`.
-    - **Development:** Pass a callback function (e.g., `onSearchSubmit`) as a prop from the page to the form. Call this function in `handleSubmit` (Task 3.6/5.5) with the validated state data (Task 4.5, Task 3.5 date).
-    - **References:** Task 3.6, Task 4.5, Task 5.5.
+    - **Description:** In the main page component (`src/pages/index.tsx`), use `useState` to manage the list of filtered flights, a loading state for search operation, and potentially an initial search/no search yet state.
+    - **Expected Outcome:** State variables: `filteredFlights: Flight[]`, `isLoading: boolean`, `hasSearched: boolean`.
+    - **Affected:** `src/pages/index.tsx`.
+    - **Development:** `const [filteredFlights, setFilteredFlights] = useState<Flight[]>([]); const [isLoading, setIsLoading] = useState(false); const [hasSearched, setHasSearched] = useState(false);`.
+    - **References:** Task 2.1 (Flight type).
 
-3.  **Task 6.3: Implement Flight Filtering Logic**
+3.  **Task 6.3: Implement `onSearchSubmit` Handler on Page**
 
-    - **Description:** Create a function (likely in `pages/index.tsx` or a utility file) that takes the search criteria (origin code, destination code, date) and the list of all flights, returning only the matching flights.
-    - **Expected Outcome:** A function `filterFlights(criteria, allFlights): Flight[]`.
-    - **Affected:** `pages/index.tsx` or new `utils/flight-filter.ts`.
-    - **Development:** Implement the filtering logic: match `flight.departureAirport.code` with `criteria.originCode`, `flight.arrivalAirport.code` with `criteria.destinationCode`, and compare the `flight.departureDateTime` (or just the date part) with `criteria.date`. Remember the data only contains AMS origin flights.
-    - **References:** Task 6.1, Task 6.2, Task 2.1 (Flight type), `assignment.md` (data specifics).
+    - **Description:** Create the actual search submission handler on `pages/index.tsx` that receives `FlightSearchCriteria` from the form. This handler will set `isLoading` to true, call the filtering logic, update `filteredFlights`, set `isLoading` to false, and `hasSearched` to true.
+    - **Expected Outcome:** A function `handleFlightSearch(criteria: FlightSearchCriteria)` that orchestrates the search process.
+    - **Affected:** `src/pages/index.tsx`.
+    - **Development:** `const handleFlightSearch = async (criteria: FlightSearchCriteria) => { setIsLoading(true); setHasSearched(true); // Simulate async for loading state if filtering is very fast // await new Promise(resolve => setTimeout(resolve, 500)); const results = filterFlights(criteria, props.allFlights); // props.allFlights from getStaticProps setFilteredFlights(results); setIsLoading(false); };`. Pass this to `FlightSearchForm`.
+    - **References:** Task 6.1, Task 6.2, Task 6.4 (filterFlights function), Phase 3 (form prop).
 
-4.  **Task 6.4: Manage Filtered Flights State**
+4.  **Task 6.4: Implement Core Flight Filtering Utility**
 
-    - **Description:** In the main page component (`pages/index.tsx`), use `useState` to store the list of filtered flights found after a search.
-    - **Expected Outcome:** A state variable (e.g., `filteredFlights: Flight[]`) holding the search results.
-    - **Affected:** `pages/index.tsx`.
-    - **Development:** Initialize state `useState<Flight[]>([])`. In the `onSearchSubmit` callback (Task 6.2), call the filtering function (Task 6.3) and update this state with the results.
-    - **References:** Task 6.2, Task 6.3.
+    - **Description:** Create a pure utility function (e.g., in `src/lib/flight-utils.ts`) `filterFlights(criteria: FlightSearchCriteria, allFlights: Flight[]): Flight[]`. This function must accurately filter flights based on origin code, destination code, and the exact departure date. Remember `flights-from-AMS.json` only has AMS origin, so filtering by other origins will yield no results unless data is expanded.
+    - **Expected Outcome:** A testable, efficient function that returns an array of matching `Flight` objects.
+    - **Affected:** New file (`src/lib/flight-utils.ts` or similar).
+    - **Development:** Import `FlightSearchCriteria`, `Flight` types, and `isSameDay` from `date-fns`. `return allFlights.filter(flight => flight.departureAirport.code === criteria.originCode && flight.arrivalAirport.code === criteria.destinationCode && isSameDay(new Date(flight.departureDateTime), criteria.departureDate));`.
+    - **References:** Task 6.1, Task 2.1 (Flight type), Phase 1 (date-fns).
 
-5.  **Task 6.5: Handle No Results Found**
-    - **Description:** Ensure the state and subsequent display logic correctly handle cases where no matching flights are found by the filter.
-    - **Expected Outcome:** The `filteredFlights` state might be an empty array, and the UI should reflect this appropriately (covered in Phase 7).
-    - **Affected:** `pages/index.tsx` (state update logic).
-    - **Development:** The filtering function (Task 6.3) should naturally return `[]` if no matches. Ensure the state update (Task 6.4) handles this.
-    - **References:** Task 6.3, Task 6.4.
+5.  **Task 6.5: Handle No Results Gracefully**
+
+    - **Description:** The `filterFlights` function will naturally return an empty array if no matches. The page state (`filteredFlights`) will reflect this. The results display component (Phase 7) will be responsible for showing a "No results" message.
+    - **Expected Outcome:** `filteredFlights` state correctly becomes `[]` when no flights match. No special logic needed here beyond what `filter()` provides.
+    - **Affected:** `src/lib/flight-utils.ts` (by its nature), `src/pages/index.tsx` (state update).
+    - **Development:** Ensure the filtering logic in Task 6.4 correctly returns empty array on no match.
+    - **References:** Task 6.4, Phase 7.
+
+6.  **Task 6.6: Consider State Management for Scalability (Context API or Zustand)**
+    - **Description:** For this assignment, `useState` in the page component is likely sufficient. However, for a senior-level approach, briefly consider if React Context API or Zustand would be beneficial if the app were to grow (e.g., multiple components needing search state/results, more complex global state). Document this consideration.
+    - **Expected Outcome:** A decision to stick with `useState` for now, but with an understanding of when to escalate state management.
+    - **Affected:** Design decision, potentially comments in code.
+    - **Development:** Stick to `useState` on `pages/index.tsx`. Add a comment: `// For more complex state sharing, consider Context API or Zustand.` [Reference: Pedals Up - Medium](https://medium.com/@PedalsUp/mastering-next-js-best-practices-for-clean-scalable-and-type-safe-development-626257980e60)
+    - **References:** Task 6.2.
