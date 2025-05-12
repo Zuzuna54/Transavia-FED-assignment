@@ -1,0 +1,17 @@
+/* Global Styles Entry Point */
+
+// Import partials using @use
+@use 'abstracts/variables';
+@use 'abstracts/mixins';
+@use 'base/reset';
+@use 'base/typography';
+@use 'layout/layout'; // Example layout import
+@use 'components/buttons'; // Example shared component style import
+
+body {
+    // Example global style
+    // If you need variables from _variables.scss here, you'd use: variables.$primary-color (for example)
+    // However, for direct style application in globals.scss, often you just define them.
+    background-color: variables.$body-bg;
+    color: variables.$body-color;
+}

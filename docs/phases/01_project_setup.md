@@ -1,6 +1,6 @@
 # Phase 1: Project Setup & Foundation
 
-**Goal:** Establish a robust, scalable Next.js project structure with TypeScript, foundational libraries (MUI, Framer Motion), and strict development standards.
+**Goal:** Establish a robust, scalable Next.js project structure with TypeScript, foundational libraries (MUI, Framer Motion), SCSS setup, and strict development standards.
 
 **Sub-tasks:**
 
@@ -11,66 +11,68 @@
     - **Affected:** Planning / `package.json` (in subsequent task).
     - **Development:**
       - Core: `next`, `react`, `react-dom`, `typescript`
-      - UI & Styling: `@mui/material`, `@mui/icons-material`, `@emotion/react`, `@emotion/styled`
-      - Date Handling: `@mui/x-date-pickers`, `date-fns`, `@date-io/date-fns` (as adapter for MUI pickers)
+      - UI Components: `@mui/material`, `@mui/icons-material`, `@mui/x-date-pickers`
+      - Styling Engine (for MUI): `@emotion/react`, `@emotion/styled`
+      - Custom Styling: `sass` (dev dependency)
+      - Date Handling: `date-fns`, `@date-io/date-fns` (adapter for MUI pickers)
       - Animation: `framer-motion`
       - Testing: `jest`, `@types/jest`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`, `ts-jest`
-      - Linting/Formatting: `eslint`, `eslint-config-next`, `prettier` (often pre-configured)
+      - Linting/Formatting: `eslint`, `eslint-config-next`, `prettier`
       - State Management: React Context API (initially), consider `zustand` if complexity increases.
-      - Validation (Optional but recommended): `zod`
+      - Validation (Optional): `zod`
     - **References:** Refined requirements, All Phases.
 
 2.  **Task 1.1: Initialize Next.js Project with TypeScript**
 
-    - **Description:** Use `create-next-app` with the TypeScript template. Select options for ESLint and Tailwind CSS (even if primarily using MUI, Tailwind can be useful for utility styling or if preferred later, otherwise select No). Ensure App Router is selected if preferred, or Pages Router otherwise (plan assumes Pages Router for `getStaticProps` examples, adjust if using App Router).
-    - **Expected Outcome:** A basic Next.js project directory with `package.json`, `tsconfig.json`, ESLint config.
+    - **Description:** Use `create-next-app`. Select Yes for TypeScript, ESLint, `src/` directory. Select No for Tailwind CSS, App Router (unless preferred). Keep default import alias.
+    - **Expected Outcome:** Basic Next.js project directory with `package.json`, `tsconfig.json`, ESLint config.
     - **Affected:** Project root directory.
-    - **Development:** Run `npx create-next-app@latest --ts`. Follow prompts.
+    - **Development:** Run `npx create-next-app@latest flight-search-app`. Follow prompts.
     - **References:** N/A (Initial setup).
 
-3.  **Task 1.2: Install Core Dependencies**
+3.  **Task 1.2: Install Core Dependencies & SCSS**
 
-    - **Description:** Install the pre-defined core libraries (MUI, Framer Motion, MUI Date Pickers/Adapter, date-fns).
-    - **Expected Outcome:** `package.json` and `yarn.lock`/`package-lock.json` updated with necessary dependencies.
+    - **Description:** Install MUI, Emotion, date pickers/adapter, date-fns, Framer Motion, Zod (optional), and `sass` as a dev dependency.
+    - **Expected Outcome:** `package.json` updated with necessary dependencies and devDependencies.
     - **Affected:** `package.json`, `node_modules`, lock file.
-    - **Development:** Run `npm install @mui/material @emotion/react @emotion/styled @mui/icons-material @mui/x-date-pickers date-fns @date-io/date-fns framer-motion [Optional: zod]` (or `yarn add ...`).
+    - **Development:** Run `npm install @mui/material @emotion/react @emotion/styled @mui/icons-material @mui/x-date-pickers date-fns @date-io/date-fns framer-motion zod` and `npm install --save-dev sass`.
     - **References:** Task 1.0.
 
 4.  **Task 1.3: Configure Strict TypeScript (`tsconfig.json`)**
 
-    - **Description:** Ensure `tsconfig.json` enforces strict type checking (`"strict": true`) and configure path aliases (e.g., `@/*`) for cleaner imports.
-    - **Expected Outcome:** A configured `tsconfig.json` promoting type safety and better import paths.
+    - **Description:** Ensure `tsconfig.json` enforces `"strict": true` and configure path aliases (`"baseUrl": "."`, `"paths": { "@/*": ["src/*"] }`).
+    - **Expected Outcome:** Configured `tsconfig.json` promoting type safety and cleaner imports.
     - **Affected:** `tsconfig.json`.
-    - **Development:** Edit `tsconfig.json`, ensure `"strict": true`, add `"baseUrl": "."` and `"paths": { "@/*": ["src/*"] }` (adjust `src/*` if not using a `src` directory). [Reference: Iqbal Pahlevi A - Medium](https://iqbalpa.medium.com/mastering-next-js-best-practices-for-clean-scalable-and-type-safe-development-2ee5693e73a9)
+    - **Development:** Edit `tsconfig.json`.
     - **References:** Task 1.1.
 
-5.  **Task 1.4: Setup Advanced Folder Structure**
+5.  **Task 1.4: Setup Advanced Folder Structure (including SCSS)**
 
-    - **Description:** Create a modular and scalable folder structure (e.g., inside a `src/` directory).
-    - **Expected Outcome:** A standardized folder structure promoting separation of concerns (e.g., `src/components/`, `src/lib/` (core logic, non-React), `src/utils/` (React-specific utils/hooks), `src/hooks/`, `src/types/`, `src/contexts/`, `src/styles/`, `src/pages/`, `src/services/` (if API calls were needed)).
+    - **Description:** Create a modular `src/` structure including standard component/logic folders and a structured `src/styles` directory for SCSS partials.
+    - **Expected Outcome:** Standardized folder structure: `src/components/` (atoms, molecules, organisms), `src/lib/`, `src/utils/`, `src/hooks/`, `src/types/`, `src/contexts/`, `src/pages/`, and `src/styles/` containing `globals.scss`, `abstracts/` (\_variables.scss, \_mixins.scss), `base/` (\_reset.scss, \_typography.scss), `layout/`, `components/`.
     - **Affected:** Project root directory structure.
-    - **Development:** Create directories. Consider Atomic Design principles for `components` (e.g., `atoms`, `molecules`, `organisms`). [Reference: Pedals Up - Medium](https://medium.com/@PedalsUp/mastering-next-js-best-practices-for-clean-scalable-and-type-safe-development-626257980e60)
+    - **Development:** Create directories and initial SCSS files (e.g., `_variables.scss`).
     - **References:** Task 1.1.
 
 6.  **Task 1.5: Configure ESLint & Prettier**
 
-    - **Description:** Ensure ESLint and Prettier are configured for consistent code style and quality checks. Integrate Prettier with ESLint.
-    - **Expected Outcome:** Config files (`.eslintrc.json`, `.prettierrc.json` or equivalents) set up. IDE integration working.
-    - **Affected:** Config files, `package.json` (scripts).
-    - **Development:** Verify/update `.eslintrc.json` (e.g., add rules). Create/verify `.prettierrc.json`. Add lint/format scripts to `package.json`. [Reference: Iqbal Pahlevi A - Medium](https://iqbalpa.medium.com/mastering-next-js-best-practices-for-clean-scalable-and-type-safe-development-2ee5693e73a9)
+    - **Description:** Ensure ESLint/Prettier are configured. Add lint/format scripts to `package.json`.
+    - **Expected Outcome:** Config files set up. IDE integration working. Scripts available.
+    - **Affected:** Config files, `package.json`.
+    - **Development:** Verify/update configs. Add `"format": "prettier --write \"**/*.{ts,tsx,scss,md,json}\""` script.
     - **References:** Task 1.1.
 
-7.  **Task 1.6: Setup MUI Theme & Provider**
+7.  **Task 1.6: Setup MUI Theme & Global SCSS Import**
 
-    - **Description:** Create a basic MUI theme (e.g., defining primary/secondary colors, potentially typography). Wrap the application in MUI's `ThemeProvider` and `CssBaseline`. Configure the DatePicker provider.
-    - **Expected Outcome:** MUI is configured with a custom theme, and providers are set up in `_app.tsx`.
-    - **Affected:** `src/styles/theme.ts` (new), `src/pages/_app.tsx`.
-    - **Development:** Create `theme.ts` using `createTheme`. Import and apply `ThemeProvider`, `CssBaseline` in `_app.tsx`. Wrap with `LocalizationProvider` from `@mui/x-date-pickers` using `AdapterDateFns`.
+    - **Description:** Create a basic MUI theme (`src/styles/theme.ts`) primarily for defining variables (palette, breakpoints, typography settings) that can be potentially referenced or used to generate SCSS variables. Import the main SCSS entry point (`globals.scss`) in `_app.tsx`. Wrap app in MUI `ThemeProvider`, `CssBaseline`, and `LocalizationProvider`.
+    - **Expected Outcome:** MUI ThemeProvider setup. Global SCSS file imported, allowing global styles and variables.
+    - **Affected:** `src/styles/theme.ts`, `src/styles/globals.scss` (new/updated), `src/pages/_app.tsx`.
+    - **Development:** Create `theme.ts`. Create `globals.scss` and import partials (@import 'abstracts/variables'; etc.). In `_app.tsx`, add `import '@/styles/globals.scss';` and wrap with providers.
     - **References:** Task 1.2, Task 1.4.
 
 8.  **Task 1.7: Verify Project Runs**
-    - **Description:** Start the development server to ensure the initial setup, including MUI integration, works correctly.
-    - **Expected Outcome:** The default Next.js page renders without errors, potentially with basic MUI styles applied via `CssBaseline`.
+    - **Description:** Start dev server to ensure basic setup, including SCSS compilation and MUI integration, works.
+    - **Expected Outcome:** Default page renders without errors. Basic global styles (if any added to `globals.scss`) are applied.
     - **Affected:** Development environment.
-    - **Development:** Run `npm run dev` (or `yarn dev`) and open the specified localhost URL.
+    - **Development:** Run `npm run dev`. Check browser.
     - **References:** Task 1.1 - 1.6.

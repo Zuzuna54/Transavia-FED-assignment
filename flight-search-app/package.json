@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md,json}\""
+    "format": "prettier --write \"**/*.{ts,tsx,scss,md,json}\""
   },
   "dependencies": {
     "@date-io/date-fns": "^3.2.1",
@@ -30,6 +30,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "sass": "^1.88.0"
   }
 }

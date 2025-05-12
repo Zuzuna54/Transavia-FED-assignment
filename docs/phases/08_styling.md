@@ -1,60 +1,60 @@
-# Phase 8: MUI Theming, Responsiveness & Polish
+# Phase 8: SCSS Implementation & Visual Polish
 
-**Goal:** Refine the application's visual appearance using MUI theming, ensure responsiveness across devices, add subtle animations, and apply Transavia branding elements if desired.
+**Goal:** Implement the visual design using the defined SCSS structure, refine MUI component appearance, ensure responsiveness, add polish with animations, and apply branding.
 
 **Sub-tasks:**
 
-1.  **Task 8.1: Customize MUI Theme**
+1.  **Task 8.1: Establish SCSS Structure & Variables**
 
-    - **Description:** Expand the basic MUI theme created in Phase 1 (`src/styles/theme.ts`). Define a color palette (potentially based on Transavia branding), customize typography (fonts, sizes), and adjust component default styles (e.g., Button variants, Card elevation) for a unique look.
-    - **Expected Outcome:** A cohesive and customized visual theme applied consistently across the application.
-    - **Affected:** `src/styles/theme.ts`, `src/pages/_app.tsx`.
-    - **Development:** Use `createTheme` options extensively. Define `palette`, `typography`, `components` overrides. Ensure theme is correctly provided in `_app.tsx`.
-    - **References:** Task 1.6, [MUI Theming Docs](https://mui.com/material-ui/customization/theming/).
+    - **Description:** Populate the SCSS partials defined in Phase 1 (`abstracts/`, `base/`, etc.). Define SCSS variables (colors, fonts, spacing, breakpoints) potentially derived from or matching the MUI `theme.ts` for consistency. Set up base styles (reset, typography).
+    - **Expected Outcome:** Well-structured SCSS foundation with variables and base styles applied via `globals.scss`.
+    - **Affected:** `src/styles/` directory (all `.scss` files).
+    - **Development:** Define variables in `_variables.scss`. Add reset/normalize rules in `base/_reset.scss`. Define base typography in `base/_typography.scss`. Import all into `globals.scss`.
+    - **References:** Task 1.4, Task 1.6.
 
-2.  **Task 8.2: Apply Consistent Layout**
+2.  **Task 8.2: Implement Layout Styles (SCSS)**
 
-    - **Description:** Implement a consistent page layout using MUI's `Container` component or custom layout components built with `Grid` or `Stack`. Ensure proper spacing and alignment.
-    - **Expected Outcome:** All content is well-aligned within a consistent page structure (e.g., centered, max-width).
-    - **Affected:** `src/pages/index.tsx`, potentially a new layout component (`src/components/layout/MainLayout.tsx`).
-    - **Development:** Wrap page content in `<Container maxWidth="md">...</Container>` or similar. Use `Box`, `Stack`, `Grid` for internal spacing.
-    - **References:** Phase 1 (MUI setup).
+    - **Description:** Define layout styles (container, header, footer if any) using SCSS, potentially within `layout/` partials or global styles.
+    - **Expected Outcome:** Consistent page structure styled with SCSS.
+    - **Affected:** `src/styles/layout/`, `src/pages/index.tsx` (applying layout classes), `src/components/layout/` (if using layout components).
+    - **Development:** Create SCSS rules for layout elements. Use classes defined in SCSS within the main page or layout components.
+    - **References:** Task 8.1.
 
-3.  **Task 8.3: Refine Form Component Styling**
+3.  **Task 8.3: Style Form Component (SCSS Module)**
 
-    - **Description:** Fine-tune the styling of `FlightSearchForm` using the custom theme and potentially the `sx` prop for specific adjustments. Ensure focus states, spacing, and alignment are polished.
-    - **Expected Outcome:** The form is visually integrated with the theme and highly usable.
-    - **Affected:** `src/components/organisms/FlightSearchForm/FlightSearchForm.tsx`, `src/styles/theme.ts`.
-    - **Development:** Rely primarily on theme overrides. Use `sx` prop for minor tweaks: `sx={{ mt: 2, mb: 1 }}`. Check visual hierarchy and readability.
-    - **References:** Task 8.1, Phase 3, Phase 4, Phase 5.
+    - **Description:** Implement detailed styling for `FlightSearchForm` within its `.module.scss` file. Target MUI component inner classes if necessary (use browser dev tools to inspect) or apply styles via wrapper elements and custom classes. Utilize SCSS variables and mixins.
+    - **Expected Outcome:** Form component styled according to design requirements using SCSS.
+    - **Affected:** `src/components/.../FlightSearchForm.module.scss`.
+    - **Development:** Write SCSS rules targeting elements/classes within the form. Use nesting, variables, mixins. E.g., `.formContainer { ... } .submitButton { @include button-variant(...); }`
+    - **References:** Phase 3, Task 8.1.
 
-4.  **Task 8.4: Refine Results Component Styling**
+4.  **Task 8.4: Style Results Component (SCSS Module)**
 
-    - **Description:** Polish the styling of `FlightResults`, ensuring flight cards are clear, readable, and utilize the theme effectively. Adjust spacing, typography, and layout within cards.
-    - **Expected Outcome:** Flight results are presented professionally and are easy to scan.
-    - **Affected:** `src/components/organisms/FlightResults/FlightResults.tsx`, `src/styles/theme.ts`.
-    - **Development:** Use theme styles. Apply `sx` prop for card-specific adjustments. Ensure consistent spacing and visual weight for information.
-    - **References:** Task 8.1, Phase 7.
+    - **Description:** Implement detailed styling for `FlightResults` and individual flight cards within its `.module.scss` file, targeting MUI components or custom classes.
+    - **Expected Outcome:** Results component styled according to design using SCSS.
+    - **Affected:** `src/components/.../FlightResults.module.scss`.
+    - **Development:** Write SCSS rules for the results list and cards. E.g., `.flightCard { ... } .flightPrice { ... }`
+    - **References:** Phase 7, Task 8.1.
 
-5.  **Task 8.5: Implement Responsive Design**
+5.  **Task 8.5: Implement Responsive Design (SCSS & MUI)**
 
-    - **Description:** Ensure the layout of the form and results adapts gracefully to different screen sizes using MUI's responsive helpers (Grid breakpoints, `sx` prop with breakpoint objects, `useMediaQuery` hook if needed).
-    - **Expected Outcome:** Application provides a good user experience on desktop, tablet, and mobile devices.
-    - **Affected:** `FlightSearchForm.tsx`, `FlightResults.tsx`, layout components.
-    - **Development:** Use responsive props in `Grid` (`xs`, `sm`, `md`). Use `sx` prop with objects: `sx={{ flexDirection: { xs: 'column', sm: 'row' } }}`. Test thoroughly using browser dev tools.
-    - **References:** Task 8.2, 8.3, 8.4, [MUI Responsive Docs](https://mui.com/material-ui/customization/responsive-values/).
+    - **Description:** Use SCSS media queries (leveraging breakpoint variables defined in Task 8.1) within `.module.scss` files to adjust component styles. Combine with MUI's responsive props (`xs`, `sm`, etc.) for grid layout adjustments.
+    - **Expected Outcome:** Application layout and components adapt gracefully across devices.
+    - **Affected:** All `.scss` modules, layout components, `FlightSearchForm.tsx`, `FlightResults.tsx`.
+    - **Development:** Define media query mixins or use breakpoint variables directly in SCSS: `@media (min-width: $breakpoint-md) { ... }`. Test thoroughly.
+    - **References:** Task 8.1, [MUI Responsive Docs].
 
-6.  **Task 8.6: Add Subtle Page/Layout Animations (Framer Motion)**
+6.  **Task 8.6: Refine Animations (Framer Motion)**
 
-    - **Description:** Introduce subtle page transitions or layout animations using Framer Motion for a smoother overall feel (e.g., animating the results section appearance relative to the form).
-    - **Expected Outcome:** Enhanced perceived performance and visual appeal through motion.
-    - **Affected:** `src/pages/index.tsx`, potentially `_app.tsx` or layout component.
-    - **Development:** Use `motion.div` with `initial`, `animate`, `exit` props on page containers or key sections. Consider `LayoutGroup` for shared layout animations if needed.
-    - **References:** Phase 1 (Framer Motion), Phase 7 (Results Animation).
+    - **Description:** Polish animations added in previous phases (e.g., form, results list, error messages) **using Framer Motion**. Ensure animations are smooth, meaningful, and contribute positively to the user experience.
+    - **Expected Outcome:** Smooth, meaningful animations enhancing UX, implemented consistently with Framer Motion.
+    - **Affected:** Components using Framer Motion (`FlightSearchForm.tsx`, `FlightResults.tsx`, etc.).
+    - **Development:** Review and adjust Framer Motion props (`initial`, `animate`, `exit`, `transition`, `variants`) in existing `motion` components. Ensure `AnimatePresence` is used correctly where needed.
+    - **References:** Phase 3 (Task 3.7), Phase 4 (Task 4.6), Phase 5 (Task 5.4), Phase 7 (Task 7.6), Phase 1 (Framer Motion setup).
 
-7.  **Task 8.7: Apply Transavia Branding (Optional)**
-    - **Description:** If desired, integrate Transavia brand colors (e.g., green, blue) into the MUI theme's palette. Optionally add the logo.
-    - **Expected Outcome:** Application visually aligns with Transavia's branding.
-    - **Affected:** `src/styles/theme.ts`, potentially layout component for logo.
-    - **Development:** Update `palette` in `theme.ts` with Transavia colors. Add an `<img>` or SVG component for the logo in the header/layout.
+7.  **Task 8.7: Apply Transavia Branding (SCSS Variables)**
+    - **Description:** If desired, update SCSS color variables in `_variables.scss` with Transavia brand colors. Ensure these variables are used throughout SCSS rules.
+    - **Expected Outcome:** Application styling reflects Transavia branding via SCSS variables.
+    - **Affected:** `src/styles/abstracts/_variables.scss`, potentially other `.scss` files.
+    - **Development:** Update color variable definitions. Verify changes propagate.
     - **References:** Task 8.1, `assignment.md`.

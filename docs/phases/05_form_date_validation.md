@@ -1,6 +1,6 @@
-# Phase 5: Form Component - MUI Date Picker & Validation
+# Phase 5: Form Component - MUI Date Picker, Validation & SCSS
 
-**Goal:** Integrate an accessible and user-friendly date picker using MUI X components, implement robust form validation, and provide clear user feedback with animations.
+**Goal:** Integrate MUI Date Picker, implement robust form validation, and provide clear user feedback with animations and SCSS-styled error states.
 
 **Sub-tasks:**
 
@@ -28,12 +28,12 @@
     - **Development:** (If zod) Define schema: `zod.object({ origin: AirportTypeZod, destination: AirportTypeZod, departureDate: zod.date() })`. (If manual) Create `validateForm(formState): ErrorsObject`. Check `formState.origin !== null`, `formState.destination !== null`, `formState.departureDate !== null && isValid(formState.departureDate)`. Return an object mapping field names to error messages.
     - **References:** Phase 3 (State), Phase 4 (State), Task 5.1 (State), Phase 1 (zod optional install).
 
-4.  **Task 5.4: Display Validation Errors with MUI & Animation**
+4.  **Task 5.4: Display Validation Errors with MUI, Animation & SCSS**
 
-    - **Description:** Display validation errors using MUI `TextField`'s `error` and `helperText` props. Animate the appearance/disappearance of error messages using Framer Motion.
-    - **Expected Outcome:** Clear, field-specific error messages appear below invalid fields upon attempted submission. Error messages are animated.
-    - **Affected:** `FlightSearchForm.tsx`.
-    - **Development:** Maintain an error state: `useState<Record<string, string>>({})`. In `handleSubmit`, run validation (Task 5.3). If errors, update error state. Pass `error={!!errors.origin}` and `helperText={errors.origin || ' '}` to relevant `TextField`/`DatePicker` renderInput. Wrap the `helperText` display area (or the `FormHelperText` component if used separately) in `<AnimatePresence>` and `<motion.div>` for animation.
+    - **Description:** Display validation errors using MUI `TextField`'s `error` and `helperText` props. Animate the appearance/disappearance of error messages **exclusively using Framer Motion**. Apply custom error styling (e.g., specific color/icon) via SCSS module if needed.
+    - **Expected Outcome:** Clear, field-specific error messages appear below invalid fields upon attempted submission. Error messages are **animated using Framer Motion** and SCSS-customizable for static styles.
+    - **Affected:** `FlightSearchForm.tsx`, `FlightSearchForm.module.scss`.
+    - **Development:** Maintain an error state: `useState<Record<string, string>>({})`. In `handleSubmit`, run validation (Task 5.3). If errors, update error state. Pass `error={!!errors.origin}` and `helperText={errors.origin || ' '}` to relevant `TextField`/`DatePicker` renderInput. Wrap the `helperText` display area (or the `FormHelperText` component if used separately) in `<AnimatePresence>` and `<motion.div>` **for the animation**. Add `styles.errorMessage` class if customizing static styling beyond MUI theme and define in SCSS.
     - **References:** Task 5.1, Task 5.3, Phase 1 (MUI/Framer Motion setup).
 
 5.  **Task 5.5: Prevent Submission & Update Handler**

@@ -1,0 +1,40 @@
+// Layout Styles (e.g., Header, Footer, Grid)
+
+// Example:
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.flex-row {
+    @include flex-row;
+}
+
+.flex-column {
+    @include flex-column;
+}
+
+.flex-row-center {
+    @include flex-row-center;
+}
+
+.flex-column-center {
+    @include flex-column-center;
+}
+
+.flex-row-between {
+    @include flex-row-between;
+}
+
+.flex-column-between {
+    @include flex-column-between;
+}
+
+.flex-row-around {
+    @include flex-row-around;
+}
+
+.flex-column-around {
+    @include flex-column-around;
+}

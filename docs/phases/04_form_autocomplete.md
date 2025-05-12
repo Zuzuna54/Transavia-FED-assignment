@@ -1,6 +1,6 @@
-# Phase 4: Form Component - MUI Autocomplete & Logic
+# Phase 4: Form Component - MUI Autocomplete & SCSS Styling
 
-**Goal:** Implement efficient and user-friendly autocomplete functionality for Origin and Destination fields using MUI's `Autocomplete` component, airport data, and performance optimizations.
+**Goal:** Implement efficient and user-friendly autocomplete functionality using MUI's `Autocomplete`, with custom styling adjustments via SCSS Modules.
 
 **Sub-tasks:**
 

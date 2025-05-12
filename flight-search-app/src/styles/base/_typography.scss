@@ -1,0 +1,57 @@
+// Base Typography Styles
+
+@use '../abstracts/variables'; // Import variables to use them
+
+// Example:
+body {
+    font-family: variables.$font-family-base;
+    font-size: variables.$font-size-base; // Use defined size variable
+    line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+p {
+    margin-bottom: 1rem;
+}
+
+a {
+    color: variables.$link-color;
+}
+
+.text-primary {
+    color: variables.$primary-color;
+}
+
+.text-secondary {
+    color: variables.$secondary-color;
+}
+
+.text-success {
+    color: variables.$success-color;
+}
+
+.text-danger {
+    color: variables.$danger-color;
+}
+
+.text-warning {
+    color: variables.$warning-color;
+}
+
+.text-muted {
+    color: variables.$muted-color;
+}
+
+.text-body {
+    color: variables.$body-color;
+}
