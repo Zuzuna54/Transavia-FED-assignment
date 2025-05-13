@@ -1,9 +1,10 @@
 import React, { Suspense } from 'react';
 import { loadAirports, loadFlights } from '@/lib/data-loader';
 import { Airport } from '@/types/data';
-import styles from "./page.module.css"; // Keep styles if needed for layout later
+import pageStyles from "./page.module.scss"; // Renamed import
 import SearchClientWrapper from '@/components/organisms/SearchClientWrapper/SearchClientWrapper'; // Import the client wrapper
 import Box from '@mui/material/Box';
+import LoadingIndicator from '@/components/atoms/LoadingIndicator/LoadingIndicator'; // Import LoadingIndicator
 
 // Removed HomePageProps interface as props are passed directly
 
@@ -27,17 +28,21 @@ export default async function Home() {
 
     // Render the Client Wrapper, passing data as props
     return (
-        <main className={styles.main}>
-            <h1>Flight Search App</h1>
-            <Box sx={{ my: 4 }}>
-                <Suspense fallback={<div>Loading form...</div>}>
-                    <SearchClientWrapper
-                        airports={airports}
-                    // airportMap={airportMap}
-                    // allFlights={allFlights}
-                    />
-                </Suspense>
-            </Box>
+        // Apply styles from page.module.css if needed, otherwise remove if unused
+        <main className={pageStyles.main}>
+            {/* Apply layout container class */}
+            <div className={pageStyles.container}>
+                <h1>Flight Search App</h1>
+                <Box sx={{ my: 4 }}>
+                    <Suspense fallback={<LoadingIndicator />}>
+                        <SearchClientWrapper
+                            airports={airports}
+                            // airportMap={airportMap} // DO NOT pass Map from server to client
+                            allFlights={allFlights} // Pass allFlights data
+                        />
+                    </Suspense>
+                </Box>
+            </div>
         </main>
     );
 }

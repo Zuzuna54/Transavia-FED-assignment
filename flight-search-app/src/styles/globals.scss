@@ -5,7 +5,7 @@
 @use 'abstracts/mixins';
 @use 'base/reset';
 @use 'base/typography';
-@use 'layout/layout'; // Example layout import
+// @use 'layout/layout'; // Removed - intended as CSS Module
 @use 'components/buttons'; // Example shared component style import
 
 body {

@@ -1,12 +1,50 @@
+@use '@/styles/abstracts/variables.scss' as *;
+
 .formContainer {
-    padding: 1rem;
-    border: 1px solid #ccc; // Example border
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    background-color: #f9f9f9; // Example background
+    // This class seems unused in FlightSearchForm.tsx, consider removing if not needed elsewhere
+    padding: $spacing-md; // Use variable
+    border: 1px solid $medium-gray; // Use available variable
+    border-radius: $border-radius-md; // Use variable
+    margin-bottom: $spacing-md; // Use variable
+    background-color: $light-gray; // Use available variable
 }
 
 .submitButton {
     // Styles for the submit button (Task 3.3)
     margin-top: 1rem;
 }
+
+// Styles for the main form Box (sx props in TSX might override some of these)
+.flightSearchForm {
+    background-color: $white;
+    box-shadow: $box-shadow-default;
+    // sx prop p:3 in TSX is equivalent to $spacing-lg if 1 unit = 8px (3*8=24px)
+    // sx prop gap:2 in TSX is equivalent to $spacing-md if 1 unit = 8px (2*8=16px)
+
+    .form {
+        // This class also seems unused in the current FlightSearchForm.tsx structure
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-md; // Use variable
+    }
+}
+
+// Styles for the animated error messages
+.errorMessage {
+    margin-top: $spacing-xs;
+    font-size: $font-size-sm;
+    // Color is handled by FormHelperText error prop
+}
+
+// Note: The submit button is styled via sx prop in FlightSearchForm.tsx.
+// If we want to add SCSS-based hover, we'd need a class on the Button
+// and then target it here. For now, we can add hover via sx prop in TSX.
+// Example if it had a class:
+// .submitButtonSCSS {
+//     margin-top: $spacing-md; // Use variable
+//     transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+//     &:hover {
+//         background-color: darken($primary-color, 5%); // Example darken
+//         transform: translateY(-1px);
+//     }
+// }

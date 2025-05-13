@@ -1,71 +1,104 @@
+@use "sass:color"; // Import the sass:color module
+
 // SCSS Variables
 
-$font-family-base: 'Roboto', sans-serif;
-$breakpoint-md: 768px;
+// Colors
+// Brand Colors (replace with official Transavia hex codes if different)
+$transavia-green: #00A87B;
+$transavia-blue: #0033A0;
+$transavia-yellow: #FFD700; // Keep if used elsewhere
+$transavia-red: #D80032; // Keep if used elsewhere
 
-$primary-color: #007bff;
-$secondary-color: #6c757d;
-$tertiary-color: #adb5bd;
-$body-color: #212529;
-$body-bg: #fff;
+// Neutral Colors
+$white: #ffffff;
+$black: #000000;
+$light-gray: #f4f4f4;
+$medium-gray: #cccccc;
+$dark-gray: #333333;
+$body-color: $dark-gray; // Alias for common use
+$body-bg: $white;
+$tertiary-color: $light-gray; // Re-added tertiary color, using light-gray as an example
 
-$link-color: #003366;
-$success-color: #006B3C;
-$danger-color: #D80032;
-$warning-color: #FFD700;
-$info-color: #0dcaf0;
-$muted-color: $secondary-color;
+// Primary Palette
+$primary-color: $transavia-green;
+$primary-color-dark: color.adjust($primary-color, $lightness: -10%);
+$primary-color-light: color.adjust($primary-color, $lightness: 10%);
 
-$border-radius: 0.25rem;
+// Secondary Palette
+$secondary-color: $transavia-blue;
+$secondary-color-dark: color.adjust($secondary-color, $lightness: -10%);
+$secondary-color-light: color.adjust($secondary-color, $lightness: 10%);
+
+// Functional Colors
+$error-color: #f44336;
+$success-color: #4caf50;
+$warning-color: #ff9800;
+$info-color: #2196f3;
+$danger-color: $transavia-red; // Use brand red for danger
+$muted-color: $medium-gray;
+
+// Text Colors
+$text-primary: $dark-gray;
+$text-secondary: color.adjust($dark-gray, $lightness: 20%); // Use color.adjust
+$text-disabled: $medium-gray;
+$text-on-primary: $white;
+$text-on-secondary: $white;
+$link-color: $transavia-blue;
+
+// Fonts
+$font-primary: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+$font-secondary: $font-primary; // Use same font for now
+$font-family-base: $font-primary; // Alias for common use
+
+// Font Sizes
+$font-size-base: 1rem; // 16px
+$font-size-sm: 0.875rem; // 14px
+$font-size-lg: 1.25rem; // 20px
+$font-size-xl: 1.5rem; // 24px (Adjusted from previous 2rem)
+
+// Font Weights
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+// Spacing
+$spacing-unit: 8px;
+$spacing-xs: $spacing-unit * 0.5; // 4px
+$spacing-sm: $spacing-unit; // 8px
+$spacing-md: $spacing-unit * 2; // 16px
+$spacing-lg: $spacing-unit * 3; // 24px
+$spacing-xl: $spacing-unit * 4; // 32px
+
+// Borders
 $border-width: 1px;
-$border-color: #dee2e6;
+$border-color: $medium-gray;
+$border-radius-sm: 4px;
+$border-radius-md: 8px; // Matches MuiButton
+$border-radius-lg: 12px; // Matches MuiCard
+$border-radius: $border-radius-sm; // Default alias
 
-$shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-$shadow-md: 0 0.375rem 0.75rem rgba(0, 0, 0, 0.1);
-$shadow-lg: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+// Box Shadow
+$box-shadow-default: 0 1px 3px rgba($black, 0.12), 0 1px 2px rgba($black, 0.24);
+$shadow-sm: $box-shadow-default; // Alias
+// Add $shadow-md, $shadow-lg if needed, using values from MUI theme or custom
 
-$transition-duration: 0.3s;
+// Breakpoints (Align with MUI defaults or define custom)
+$breakpoint-xs: 0;
+$breakpoint-sm: 600px;
+$breakpoint-md: 900px;
+$breakpoint-lg: 1200px;
+$breakpoint-xl: 1536px;
+
+// Transitions
+$transition-duration: 0.2s; // Faster transition
 $transition-timing-function: ease-in-out;
 
-// Transavia Colors
-$transavia-blue: #003366;
-$transavia-yellow: #FFD700;
-$transavia-green: #006B3C;
-$transavia-red: #D80032;
-
-// Transavia Typography
-$font-size-base: 1rem;
-$font-size-sm: 0.875rem;
-$font-size-lg: 1.25rem;
-$font-size-xl: 2rem;
-
-// Transavia Breakpoints
-$breakpoint-sm: 576px;
-$breakpoint-md: 768px;
-$breakpoint-lg: 992px;
-$breakpoint-xl: 1200px;
-
-// Transavia Button Colors
-$button-primary-bg: $transavia-blue;
-$button-primary-text: #fff;
-$button-secondary-bg: $transavia-yellow;
-$button-secondary-text: #000;
-
-// Transavia Input Colors
-$input-bg: #fff;
-$input-border: #ced4da;
-$input-focus-border: $transavia-blue;
-$input-focus-shadow: 0 0 0 0.25rem rgba($transavia-blue, 0.25);
-
-// Transavia Datepicker Colors
-$datepicker-bg: $transavia-blue;
-$datepicker-text: #fff;
-$datepicker-border: $transavia-blue;
-$datepicker-focus-border: $transavia-blue;
-$datepicker-focus-shadow: 0 0 0 0.25rem rgba($transavia-blue, 0.25);
-
-// Transavia Flight Search Colors
-$flight-search-bg: #f8f9fa;
-$flight-search-border: #dee2e6;
-$flight-search-text: #212529;
-$flight-search-link: $transavia-blue;
+// Z-index
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;

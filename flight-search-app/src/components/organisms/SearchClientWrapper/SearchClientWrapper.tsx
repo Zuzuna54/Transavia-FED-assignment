@@ -1,14 +1,16 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import FlightSearchForm from '@/components/organisms/FlightSearchForm/FlightSearchForm';
-// import FlightResults from '../FlightResults/FlightResults'; // Reverted: Assuming FlightResults component exists
-import { Airport } from '@/types/data'; // Import types - Keep only used types
-// import { searchFlights } from '@/lib/flight-search'; // Reverted: Import the search logic
-import { Box } from '@mui/material'; // Added Box for layout
+import FlightResults from '../FlightResults/FlightResults'; // Import the new component
+import { Airport, FlightOffer } from '@/types/data'; // Added FlightOffer
+import { filterFlights } from '@/lib/flight-utils'; // Import the filtering utility (to be created)
+import { Box } from '@mui/material';
+import { parseISO } from 'date-fns'; // Import parseISO to convert string date
 
 // Define the structure for the search criteria received from the form
-interface SearchCriteria {
+// Export this type so FlightSearchForm can use it
+export interface SearchCriteria {
     // Define based on FormState in FlightSearchForm
     origin: string;
     destination: string;
@@ -19,43 +21,82 @@ interface SearchCriteria {
 
 interface SearchClientWrapperProps {
     airports: Airport[];
-    // Reverted: airportMap: AirportMap;
-    // Reverted: allFlights: Flight[]; // Pass all flights initially
+    allFlights: FlightOffer[]; // Accept all flights
 }
 
 export default function SearchClientWrapper({
     airports,
-    // Reverted: airportMap,
-    // Reverted: allFlights,
+    allFlights,
 }: SearchClientWrapperProps) {
-    console.log("--- Rendering SearchClientWrapper ---"); // Added log
-    // Reverted: State for search results, loading, and errors
-    // const [results, setResults] = useState<Flight[]>([]);
-    // const [isLoading, setIsLoading] = useState(false);
-    // const [error, setError] = useState<string | null>(null);
+    console.log("--- Rendering SearchClientWrapper ---");
+    // State for search results, loading, and search status
+    const [filteredFlights, setFilteredFlights] = useState<FlightOffer[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [hasSearched, setHasSearched] = useState(false);
+    // For more complex state sharing across many components, consider Context API or Zustand.
+
+    // Recreate the map on the client side using the airports array
+
+    const airportMap = useMemo(() => {
+        console.log("--- Recomputing airportMap on client ---"); // Log when map is recomputed
+        const map = new Map<string, Airport>();
+        airports.forEach(airport => {
+            map.set(airport.code, airport);
+        });
+        return map;
+    }, [airports]); // Dependency array ensures it only recomputes if airports changes
 
     // Handler for when the form submits search criteria
-    const handleSearch = (criteria: SearchCriteria) => {
+    const handleSearch = async (criteria: SearchCriteria) => {
         console.log('Search submitted in wrapper:', criteria);
-        // TODO: Implement actual search logic (Phase 6)
-        // setIsLoading(true);
-        // setError(null);
-        // setResults([]);
-        // const foundFlights = searchFlights(criteria, allFlights, airportMap);
-        // setResults(foundFlights);
-        // setIsLoading(false);
+        setIsLoading(true);
+        setHasSearched(true);
+        setFilteredFlights([]); // Clear previous results
+
+        // Simulate async operation if needed, or remove if filtering is fast
+        // Removing the simulation for now as loading state is handled
+        // await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Prepare criteria for filtering function (convert date string to Date object)
+        const filterCriteria = {
+            ...criteria,
+            departureDate: parseISO(criteria.departureDate), // Convert departure date string to Date
+            // Note: filterFlights utility will likely ignore returnDate and passengers for now
+        };
+
+        // Simulate API call or heavy computation
+        await new Promise(resolve => setTimeout(resolve, 500)); // Re-add a short delay to simulate work
+
+        try {
+            const results = filterFlights(filterCriteria, allFlights);
+            console.log(`Filtering complete, found ${results.length} flights.`);
+            setFilteredFlights(results);
+        } catch (error) {
+            console.error("Error during flight filtering:", error);
+            // Optionally set an error state here to display to the user
+            setFilteredFlights([]); // Clear results on error
+        }
+
+        setIsLoading(false); // Ensure loading is set to false after operation
     };
 
     return (
         <Box> {/* Use Box for basic layout container */}
-            {/* Pass airports data down to the form */}
-            <FlightSearchForm airports={airports} onSearchSubmit={handleSearch} />
+            <FlightSearchForm
+                airports={airports}
+                allFlights={allFlights}
+                onSearchSubmit={handleSearch}
+                isLoading={isLoading} // Pass isLoading state down
+            />
 
-            {/* Placeholder for results - To be implemented in Phase 7 */}
-            {/* <FlightResults results={results} isLoading={isLoading} error={error} airportMap={airportMap} /> */}
-            <Box mt={4}> {/* Add some space before potential results */}
-                {/* Results will go here */}
-                <p>Search results will appear here.</p>
+            {/* Render the FlightResults component, passing state */}
+            <Box mt={4}>
+                <FlightResults
+                    flights={filteredFlights}
+                    airportMap={airportMap}
+                    isLoading={isLoading}
+                    hasSearched={hasSearched}
+                />
             </Box>
         </Box>
     );

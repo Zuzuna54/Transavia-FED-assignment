@@ -6,6 +6,8 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import theme from '@/styles/theme';
+// Import LicenseInfo from the newer package
+import { LicenseInfo } from '@mui/x-license';
 // Emotion Cache specific imports for SSR
 import createCache, { Options as EmotionCacheOptions } from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
@@ -17,6 +19,11 @@ import { CacheProvider } from '@emotion/react';
 export default function ThemeRegistry(props: { options?: EmotionCacheOptions; children: React.ReactNode }) {
     console.log("--- Rendering ThemeRegistry ---");
     const { options, children } = props;
+
+    // Set the license key synchronously at the start of the component function body
+    LicenseInfo.setLicenseKey(
+        '8b16ac2d95778816b4a88387905c5a38Tz03NzIxMCxFPTE3NDg1ODcyMDAwMDAsUz1wcm8sTE09c3Vic2NyaXB0aW9uLEtWPTI='
+    );
 
     const [{ cache, flush }] = React.useState(() => {
         const cache = createCache({ key: 'mui', ...options });
