@@ -269,7 +269,7 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({
                     boxShadow: '0 4px 12px rgba(0,0,0,0.08)', // Softer shadow for a modern feel
                     opacity: isLoading ? 0.7 : 1,
                     pointerEvents: isLoading ? 'none' : 'auto',
-                    width: '80%',
+                    width: '100%',
                     boxSizing: 'border-box',
                 }}
                 noValidate
