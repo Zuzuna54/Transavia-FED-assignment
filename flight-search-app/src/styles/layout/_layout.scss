@@ -2,13 +2,6 @@
 
 @use '../abstracts/mixins'; // Import mixins to use them
 
-// Example:
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 1rem;
-}
-
 .flex-row {
     @include mixins.flex-row;
 }

@@ -16,10 +16,9 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    console.log("--- Rendering RootLayout ---");
     return (
         <html lang="en">
-            <body className={inter.className}>
+            <body className={inter.className} style={{ height: '100vh', width: '100vw', backgroundColor: 'rgb(236, 248, 226)' }}>
                 <ThemeRegistry>{children}</ThemeRegistry>
             </body>
         </html>

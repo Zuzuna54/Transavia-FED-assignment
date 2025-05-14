@@ -1,17 +1,56 @@
 /* Global Styles Entry Point */
 
 // Import partials using @use
-@use 'abstracts/variables';
+@use 'abstracts/variables' as vars;
 @use 'abstracts/mixins';
 @use 'base/reset';
 @use 'base/typography';
-// @use 'layout/layout'; // Removed - intended as CSS Module
+@use 'layout/layout';
 @use 'components/buttons'; // Example shared component style import
 
+:root {
+    // Base Font (assuming Geist Sans is your primary, if not, adjust)
+    --font-geist-sans: #{vars.$font-primary};
+    // Monospace Font (define a generic fallback or a specific mono font if available in vars)
+    --font-geist-mono: 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+
+    // Light Mode Palette (default)
+    --foreground: #{vars.$text-primary};
+    --background: #{vars.$body-bg};
+
+    // For --gray-rgb, we'll use the hex of $medium-gray and expect JS/components to handle conversion if needed,
+    // or define it as r, g, b values if a specific gray is chosen.
+    // $medium-gray: #cccccc; -> 204, 204, 204
+    --gray-rgb-value: 204, 204, 204;
+    --gray-rgb: var(--gray-rgb-value);
+
+    --button-primary-hover: #{vars.$primary-color-dark};
+    --button-secondary-hover: #{vars.$secondary-color-dark};
+
+    --primary-color: #{vars.$primary-color};
+    --secondary-color: #{vars.$secondary-color};
+
+    // Ensure other necessary variables like those for button text, borders etc are exposed if needed by modules
+    --text-on-primary: #{vars.$text-on-primary};
+    --border-color: #{vars.$border-color};
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --foreground: #{vars.$white};
+        --background: #{vars.$dark-gray};
+
+        // Use a darker gray for dark mode alpha base for better contrast if needed
+        // $dark-gray: #333333 -> 51, 51, 51
+        --gray-rgb-value: 51, 51, 51;
+
+        --button-primary-hover: #{vars.$primary-color-light};
+        --button-secondary-hover: #{vars.$secondary-color-light};
+    }
+}
+
 body {
-    // Example global style
-    // If you need variables from _variables.scss here, you'd use: variables.$primary-color (for example)
-    // However, for direct style application in globals.scss, often you just define them.
-    background-color: variables.$body-bg;
-    color: variables.$body-color;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-geist-sans);
 }

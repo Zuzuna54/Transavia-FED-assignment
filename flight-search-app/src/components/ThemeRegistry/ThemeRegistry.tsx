@@ -17,7 +17,6 @@ import { CacheProvider } from '@emotion/react';
 // https://mui.com/material-ui/integrations/nextjs/#app-router
 
 export default function ThemeRegistry(props: { options?: EmotionCacheOptions; children: React.ReactNode }) {
-    console.log("--- Rendering ThemeRegistry ---");
     const { options, children } = props;
 
     // Set the license key synchronously at the start of the component function body

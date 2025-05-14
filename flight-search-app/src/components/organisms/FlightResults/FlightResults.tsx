@@ -5,8 +5,10 @@ import { FlightOffer, Airport } from '@/types/data';
 import styles from './FlightResults.module.scss';
 import { Box, Typography, Card, CardContent, Grid, Chip } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format } from 'date-fns';
+import { format, intervalToDuration } from 'date-fns';
 import LoadingIndicator from '@/components/atoms/LoadingIndicator/LoadingIndicator';
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import { formatCurrency } from '@/lib/formatters';
 
 interface FlightResultsProps {
     flights: FlightOffer[];
@@ -14,16 +16,6 @@ interface FlightResultsProps {
     isLoading: boolean;
     hasSearched: boolean; // To differentiate between initial state and no results found
 }
-
-// Helper function for currency formatting
-const formatCurrency = (value: number, currencyCode: string): string => {
-    return new Intl.NumberFormat('nl-NL', { // Example: Netherlands locale
-        style: 'currency',
-        currency: currencyCode,
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(value);
-};
 
 // Animation variants
 const containerVariants = {
@@ -55,11 +47,11 @@ const FlightResults: React.FC<FlightResultsProps> = ({
     isLoading,
     hasSearched,
 }) => {
-    console.log("--- Rendering FlightResults ---", { isLoading, hasSearched, flightCount: flights.length });
+    // console.log("--- Rendering FlightResults ---", { isLoading, hasSearched, flightCount: flights.length }); // Removed
 
     if (isLoading) {
         return (
-            <Box className={styles.resultsContainer} sx={{ py: 4 }}>
+            <Box className={styles.resultsContainer} sx={{ py: 4, width: '100%', boxSizing: 'border-box' }}>
                 <LoadingIndicator />
             </Box>
         );
@@ -67,7 +59,7 @@ const FlightResults: React.FC<FlightResultsProps> = ({
 
     if (!hasSearched) {
         return (
-            <Box className={styles.resultsContainer} sx={{ textAlign: 'center', py: 4 }}>
+            <Box className={styles.resultsContainer} sx={{ textAlign: 'center', py: 4, width: '100%', boxSizing: 'border-box', }}>
                 <Typography variant="h6">Please enter your search criteria and click &quot;Search Flights&quot;.</Typography>
             </Box>
         );
@@ -75,7 +67,7 @@ const FlightResults: React.FC<FlightResultsProps> = ({
 
     if (flights.length === 0) {
         return (
-            <Box className={styles.resultsContainer} sx={{ textAlign: 'center', py: 4 }}>
+            <Box className={styles.resultsContainer} sx={{ textAlign: 'center', py: 4, width: '100%', boxSizing: 'border-box' }}>
                 <Typography variant="h6">No flights found matching your criteria.</Typography>
                 <Typography>Try adjusting your origin, destination, or dates.</Typography>
             </Box>
@@ -84,7 +76,19 @@ const FlightResults: React.FC<FlightResultsProps> = ({
 
     // --- Flight List Rendering ---
     return (
-        <Box className={styles.resultsContainer}>
+        <Box
+            className={styles.resultsContainer}
+            sx={{
+                width: '100%',
+                boxSizing: 'border-box',
+                backgroundColor: '#ffffff', // Added for uniform design
+                borderRadius: '12px',    // Added for uniform design
+                boxShadow: '0 4px 12px rgba(0,0,0,0.08)', // Added for uniform design
+                p: 3,                     // Added for uniform design
+                mt: 3,                     // Add some margin-top to separate from search form
+                minHeight: '500px'
+            }}
+        >
             <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
                 Available Flights ({flights.length})
             </Typography>
@@ -103,40 +107,63 @@ const FlightResults: React.FC<FlightResultsProps> = ({
                             const originAirport = airportMap.get(flight.departureAirport.locationCode);
                             const destinationAirport = airportMap.get(flight.arrivalAirport.locationCode);
 
-                            // Format dates and times
-                            const departureTime = format(new Date(flight.departureDateTime), 'HH:mm');
-                            const arrivalTime = format(new Date(flight.arrivalDateTime), 'HH:mm');
-                            const departureDate = format(new Date(flight.departureDateTime), 'EEE, MMM d'); // e.g., Thu, Nov 10
+                            const departureDateTime = new Date(flight.departureDateTime);
+                            const arrivalDateTime = new Date(flight.arrivalDateTime);
+
+                            // Format times with AM/PM
+                            const departureTimeFormatted = `Dep: ${format(departureDateTime, 'h:mm a')}`;
+                            const arrivalTimeFormatted = `Arr: ${format(arrivalDateTime, 'h:mm a')}`;
+
+                            const departureDate = format(departureDateTime, 'EEE, MMM d');
+
+                            const duration = intervalToDuration({ start: departureDateTime, end: arrivalDateTime });
+                            const durationFormatted = `${duration.hours || 0}h ${duration.minutes || 0}m`;
+
+                            const baseFare = price.baseFare;
+                            const taxSurcharge = price.taxSurcharge;
 
                             return (
-                                <Grid size={{ xs: 12, md: 6 }} key={flight.id}>
-                                    <motion.div
-                                        variants={itemVariants}
-                                    >
-                                        <Card variant="outlined" className={styles.flightCard}>
-                                            <CardContent>
-                                                <Grid container component="div" spacing={2} alignItems="center">
-                                                    {/* Route Info */}
-                                                    <Grid size={{ xs: 12, sm: 5 }}>
-                                                        <Typography variant="h6">
+                                <Grid size={{ xs: 12 }} key={flight.id}>
+                                    <motion.div variants={itemVariants}>
+                                        <Card variant="outlined" className={styles.flightCard} sx={{ height: 'auto' }}>
+                                            <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 'auto' }}> {/* Further reduced gap and padding */}
+                                                <FlightTakeoffIcon color="action" sx={{ fontSize: '1.8rem', mr: 0.5 }} /> {/* Smaller icon, added margin */}
+                                                <Grid container component="div" spacing={0.25} alignItems="flex-start" flexGrow={1}> {/* Reduced spacing, align items to top */}
+                                                    {/* Col 1: Route Info & Date */}
+                                                    <Grid size={{ xs: 12, sm: 5 }} container direction="column" sx={{ lineHeight: 1.3 }}> {/* Tighter line height */}
+                                                        <Typography variant="body1" component="div" fontWeight="medium" noWrap>
                                                             {originAirport?.city || flight.departureAirport.locationCode} → {destinationAirport?.city || flight.arrivalAirport.locationCode}
                                                         </Typography>
-                                                        <Typography variant="caption" display="block" gutterBottom>
-                                                            {originAirport?.name} ({flight.departureAirport.locationCode}) to {destinationAirport?.name} ({flight.arrivalAirport.locationCode})
+                                                        <Typography variant="caption" color="text.secondary" noWrap>
+                                                            ({originAirport?.name} to {destinationAirport?.name})
                                                         </Typography>
+                                                        <Typography variant="caption" color="text.secondary">{departureDate}</Typography>
                                                     </Grid>
-                                                    {/* Time Info */}
-                                                    <Grid size={{ xs: 6, sm: 3 }} sx={{ textAlign: { sm: 'center' } }}>
-                                                        <Typography variant="h6">{departureTime} - {arrivalTime}</Typography>
-                                                        <Typography variant="body2">{departureDate}</Typography>
+
+                                                    {/* Col 2: Times & Duration */}
+                                                    <Grid size={{ xs: 7, sm: 3 }} sx={{ textAlign: { xs: 'left', sm: 'center' }, lineHeight: 1.3 }}> {/* Tighter line height */}
+                                                        <Typography variant="caption" component="div" noWrap fontWeight="medium">{departureTimeFormatted}</Typography>
+                                                        <Typography variant="caption" component="div" noWrap fontWeight="medium">{arrivalTimeFormatted}</Typography>
+                                                        <Typography variant="caption" color="text.secondary">{durationFormatted}</Typography>
                                                     </Grid>
-                                                    {/* Price Info */}
-                                                    <Grid size={{ xs: 6, sm: 4 }} sx={{ textAlign: 'right' }}>
-                                                        <Typography variant="h5" color="primary">
-                                                            {formatCurrency(price.totalPriceOnePassenger, price.currencyCode)}
-                                                        </Typography>
-                                                        <Typography variant="caption" display="block">per passenger</Typography>
-                                                        <Chip label={price.productClass} size="small" sx={{ mt: 0.5 }} />
+
+                                                    {/* Col 3: Price Info - Restructured */}
+                                                    <Grid size={{ xs: 12, sm: 4 }} container alignItems="center" justifyContent="flex-end" sx={{ textAlign: 'right', lineHeight: 1.3 }}>
+                                                        <Grid sx={{ mr: 1, textAlign: 'right' }}>
+                                                            <Typography variant="caption" display="block" color="text.secondary">
+                                                                Base: {formatCurrency(baseFare, price.currencyCode)}
+                                                            </Typography>
+                                                            <Typography variant="caption" display="block" color="text.secondary">
+                                                                Tax: {formatCurrency(taxSurcharge, price.currencyCode)}
+                                                            </Typography>
+                                                            <Typography variant="caption" display="block" color="text.secondary">per passenger</Typography>
+                                                        </Grid>
+                                                        <Grid sx={{ textAlign: 'right' }}>
+                                                            <Typography variant="subtitle1" color="primary" component="div" fontWeight="bold">
+                                                                {formatCurrency(price.totalPriceOnePassenger, price.currencyCode)}
+                                                            </Typography>
+                                                            <Chip label={price.productClass} size="small" sx={{ mt: 0, mb: 0.25, height: '18px', fontSize: '0.65rem' }} />
+                                                        </Grid>
                                                     </Grid>
                                                 </Grid>
                                             </CardContent>

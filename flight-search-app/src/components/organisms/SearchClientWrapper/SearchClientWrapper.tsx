@@ -7,6 +7,7 @@ import { Airport, FlightOffer } from '@/types/data'; // Added FlightOffer
 import { filterFlights } from '@/lib/flight-utils'; // Import the filtering utility (to be created)
 import { Box } from '@mui/material';
 import { parseISO } from 'date-fns'; // Import parseISO to convert string date
+import { motion } from 'framer-motion'; // Import motion
 
 // Define the structure for the search criteria received from the form
 // Export this type so FlightSearchForm can use it
@@ -17,6 +18,8 @@ export interface SearchCriteria {
     departureDate: string;
     returnDate?: string;
     passengers?: number | string;
+    tripType?: string; // Added for Trip Type
+    travelClass?: string; // Added for Travel Class
 }
 
 interface SearchClientWrapperProps {
@@ -28,7 +31,6 @@ export default function SearchClientWrapper({
     airports,
     allFlights,
 }: SearchClientWrapperProps) {
-    console.log("--- Rendering SearchClientWrapper ---");
     // State for search results, loading, and search status
     const [filteredFlights, setFilteredFlights] = useState<FlightOffer[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -38,7 +40,6 @@ export default function SearchClientWrapper({
     // Recreate the map on the client side using the airports array
 
     const airportMap = useMemo(() => {
-        console.log("--- Recomputing airportMap on client ---"); // Log when map is recomputed
         const map = new Map<string, Airport>();
         airports.forEach(airport => {
             map.set(airport.code, airport);
@@ -48,7 +49,6 @@ export default function SearchClientWrapper({
 
     // Handler for when the form submits search criteria
     const handleSearch = async (criteria: SearchCriteria) => {
-        console.log('Search submitted in wrapper:', criteria);
         setIsLoading(true);
         setHasSearched(true);
         setFilteredFlights([]); // Clear previous results
@@ -69,10 +69,10 @@ export default function SearchClientWrapper({
 
         try {
             const results = filterFlights(filterCriteria, allFlights);
-            console.log(`Filtering complete, found ${results.length} flights.`);
+            // console.log(`Filtering complete, found ${results.length} flights.`); // Removed
             setFilteredFlights(results);
-        } catch (error) {
-            console.error("Error during flight filtering:", error);
+        } catch (_error: unknown) { // Prefixed error with underscore
+            console.error("Error during flight filtering:", _error); // Removed
             // Optionally set an error state here to display to the user
             setFilteredFlights([]); // Clear results on error
         }
@@ -81,7 +81,7 @@ export default function SearchClientWrapper({
     };
 
     return (
-        <Box> {/* Use Box for basic layout container */}
+        <Box sx={{ width: '100%' }}> {/* Ensure this root Box takes full width */}
             <FlightSearchForm
                 airports={airports}
                 allFlights={allFlights}
@@ -90,14 +90,14 @@ export default function SearchClientWrapper({
             />
 
             {/* Render the FlightResults component, passing state */}
-            <Box mt={4}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.2 }} style={{ width: '100%' }}>
                 <FlightResults
                     flights={filteredFlights}
                     airportMap={airportMap}
                     isLoading={isLoading}
                     hasSearched={hasSearched}
                 />
-            </Box>
+            </motion.div>
         </Box>
     );
 } 

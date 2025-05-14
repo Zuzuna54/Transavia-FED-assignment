@@ -40,11 +40,12 @@
 // If we want to add SCSS-based hover, we'd need a class on the Button
 // and then target it here. For now, we can add hover via sx prop in TSX.
 // Example if it had a class:
-// .submitButtonSCSS {
-//     margin-top: $spacing-md; // Use variable
-//     transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
-//     &:hover {
-//         background-color: darken($primary-color, 5%); // Example darken
-//         transform: translateY(-1px);
-//     }
-// }
+.submitButtonSCSS {
+    margin-top: $spacing-md; // Use variable
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+
+    &:hover {
+        background-color: darken($primary-color, 5%); // Example darken
+        transform: translateY(-1px);
+    }
+}

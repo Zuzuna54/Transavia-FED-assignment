@@ -1,5 +1,6 @@
 import { FlightOffer } from '@/types/data';
-import { isSameDay } from 'date-fns';
+// Removed isSameDay as we'll use UTC date components for comparison
+// import { isSameDay } from 'date-fns'; 
 
 // Define a stricter criteria type for the filter function itself
 // Accepts Date object for departureDate, as prepared in SearchClientWrapper
@@ -23,20 +24,24 @@ export function filterFlights(criteria: FilterCriteria, allFlights: FlightOffer[
     }
 
     return allFlights.filter(flightOffer => {
-        // Basic check for existence of outbound flight details
         if (!flightOffer.outboundFlight) {
             return false;
         }
 
         const flight = flightOffer.outboundFlight;
 
-        // Check origin and destination match
         const originMatch = flight.departureAirport?.locationCode === criteria.origin;
         const destinationMatch = flight.arrivalAirport?.locationCode === criteria.destination;
 
-        // Check if departure date is the same day
-        // Convert the flight's departureDateTime string to a Date object for comparison
-        const departureDateMatch = isSameDay(new Date(flight.departureDateTime), criteria.departureDate);
+        // Compare year, month, and day in UTC for robust date matching
+        const flightDateUTC = new Date(flight.departureDateTime);
+        // criteria.departureDate is already a Date object, assumed to be set correctly for UTC comparison (e.g., midnight UTC of target day)
+        const criteriaDateUTC = criteria.departureDate;
+
+        const departureDateMatch =
+            flightDateUTC.getUTCFullYear() === criteriaDateUTC.getUTCFullYear() &&
+            flightDateUTC.getUTCMonth() === criteriaDateUTC.getUTCMonth() &&
+            flightDateUTC.getUTCDate() === criteriaDateUTC.getUTCDate();
 
         return originMatch && destinationMatch && departureDateMatch;
     });

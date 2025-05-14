@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useState, useMemo, forwardRef } from 'react';
-import { Box, TextField, Button, Grid, CircularProgress, Alert, Autocomplete, FormHelperText } from '@mui/material';
-import { DateRangePicker } from '@mui/x-date-pickers-pro';
-import { DateRange } from '@mui/x-date-pickers-pro';
+import { Box, TextField, Button, Grid, CircularProgress, Alert, Autocomplete, FormHelperText, Stack, IconButton, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { motion, AnimatePresence } from 'framer-motion'; // Import AnimatePresence
 import { Airport, FlightOffer } from '@/types/data'; // Use path alias consistent with other components
 import { SearchCriteria } from '../SearchClientWrapper/SearchClientWrapper'; // Import SearchCriteria
-import styles from './FlightSearchForm.module.scss'; // Import the SCSS module
-import { isValid, isAfter, format, addDays, isBefore } from 'date-fns'; // Import parseISO, validation helpers, and format
+import { isValid, isAfter, format, addDays, isBefore, parseISO } from 'date-fns'; // Added parseISO
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz'; // Icon for swapping origin/destination
 
 interface FlightSearchFormProps {
     airports: Airport[];
@@ -19,8 +18,11 @@ interface FlightSearchFormProps {
 
 // Define state structure
 interface FormState {
-    dateRange: DateRange<Date>; // Use DateRange type [start, end]
+    startDate: Date | null;
+    endDate: Date | null;
     passengers?: number | string;
+    tripType?: string; // Added for Trip Type
+    travelClass?: string; // Added for Travel Class
 }
 
 // Custom Listbox component with animation
@@ -37,11 +39,13 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({
     onSearchSubmit,
     isLoading, // Destructure isLoading prop
 }) => {
-    console.log("--- Rendering FlightSearchForm ---", { isLoading });
     // State for non-autocomplete form fields
     const [formData, setFormData] = useState<FormState>({
-        dateRange: [null, null], // Initialize date range state
+        startDate: null,
+        endDate: null,
         passengers: 1,
+        tripType: 'round-trip', // Default trip type
+        travelClass: 'economy', // Default travel class
     });
     // State for Autocomplete fields
     const [originValue, setOriginValue] = useState<Airport | null>(null);
@@ -52,85 +56,65 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({
     const [error, setError] = useState<string | null>(null);
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({}); // State for field-specific errors
 
-    // --- Start of Date Availability Logic ---
+    // --- Start of Date Availability Logic (adapted for single DatePicker) ---
     const availableDepartureDates = useMemo(() => {
         const dateSet = new Set<string>();
-        // Only compute if origin, destination, and flight data are available
         if (originValue && destinationValue && allFlights) {
             allFlights.forEach(offer => {
                 const flight = offer.outboundFlight;
-                // Check if the flight matches the selected route
                 if (flight?.departureAirport?.locationCode === originValue.code &&
                     flight?.arrivalAirport?.locationCode === destinationValue.code) {
-                    // Attempt to parse the date and add its YYYY-MM-DD representation to the set
                     try {
-                        const departureDate = new Date(flight.departureDateTime);
-                        if (!isNaN(departureDate.getTime())) { // Ensure the date is valid after parsing
+                        // Ensure departureDateTime is a string before parsing
+                        const departureDateTimeStr = String(flight.departureDateTime);
+                        const departureDate = parseISO(departureDateTimeStr); // Use parseISO for robustness
+                        if (isValid(departureDate)) {
                             dateSet.add(format(departureDate, 'yyyy-MM-dd'));
                         }
-                    } catch (e) {
-                        console.error("Error parsing flight departure date:", flight.departureDateTime, e);
+                    } catch (_error: unknown) {
+                        // Error while parsing a specific flight date, allow process to continue for other dates
+                        console.error("Error parsing flight departure date:", flight.departureDateTime, _error);
                     }
                 }
             });
         }
-        // console.log("Available departure dates for", originValue?.code, "->", destinationValue?.code, ":", Array.from(dateSet)); // Log for debugging
         return dateSet;
-    }, [originValue, destinationValue, allFlights]); // Recompute when route or flights change
+    }, [originValue, destinationValue, allFlights]);
 
-    const shouldDisableDateFunc = (date: Date, position: 'start' | 'end'): boolean => {
-        const [startDate] = formData.dateRange;
+    const shouldDisableStartDate = (date: Date): boolean => {
+        if (!originValue || !destinationValue) return false;
+        const dateString = format(date, 'yyyy-MM-dd');
+        return !availableDepartureDates.has(dateString);
+    };
 
-        // 1. Handle START date based on available flights for the route
-        if (position === 'start') {
-            // Don't disable if origin or destination isn't selected yet
-            if (!originValue || !destinationValue) {
-                return false;
-            }
-            // Format the calendar date to compare with our set of available dates
-            const dateString = format(date, 'yyyy-MM-dd');
-            // Disable the date if it's NOT in the set for the selected route
-            const isDisabled = !availableDepartureDates.has(dateString);
-            return isDisabled;
-        }
-
-        // 2. Handle END date based on selected start date
-        if (position === 'end') {
-            // If no start date is selected yet, don't disable any end dates initially
-            if (!startDate || !isValid(startDate)) {
-                return false;
-            }
-            // Disable the end date if it is before or the same day as the start date
-            // Use isBefore and setHours to compare dates only (ignore time)
-            const isEndDateBeforeStartDate = isBefore(date.setHours(0, 0, 0, 0), startDate.setHours(0, 0, 0, 0));
-            return isEndDateBeforeStartDate;
-        }
-
-        // Default case (shouldn't be reached ideally)
-        return false;
+    const shouldDisableEndDate = (date: Date): boolean => {
+        if (!formData.startDate || !isValid(formData.startDate)) return false;
+        // Disable end date if it is before or the same day as the start date
+        return isBefore(date, formData.startDate) || format(date, 'yyyy-MM-dd') === format(formData.startDate, 'yyyy-MM-dd');
     };
     // --- End of Date Availability Logic ---
 
     // Create filtered lists for Autocomplete options
     const originOptions = useMemo(() => {
-        return airports.filter(airport => airport.code !== destinationValue?.code);
+        // Exclude destination from origin options if destination is selected
+        return airports.filter(airport => !destinationValue || airport.code !== destinationValue.code);
     }, [airports, destinationValue]);
 
     const destinationOptions = useMemo(() => {
+        // Exclude origin from destination options if origin is selected
+        const baseOptions = airports.filter(airport => !originValue || airport.code !== originValue.code);
+
         if (originValue?.code === 'AMS') {
-            // If origin is AMS, filter destinations based on actual routes in allFlights
+            // If origin is AMS, further filter destinations based on actual routes in allFlights
             const reachableDestinationCodes = new Set(
-                allFlights.map(offer => offer.outboundFlight.arrivalAirport.locationCode)
+                allFlights
+                    .filter(offer => offer.outboundFlight.departureAirport.locationCode === originValue.code)
+                    .map(offer => offer.outboundFlight.arrivalAirport.locationCode)
             );
-            return airports.filter(airport =>
-                airport.code !== originValue?.code &&
-                reachableDestinationCodes.has(airport.code)
-            );
-        } else {
-            // Default behavior: filter out only the selected origin, or show all if no origin selected
-            return airports.filter(airport => airport.code !== originValue?.code);
+            return baseOptions.filter(airport => reachableDestinationCodes.has(airport.code));
         }
-    }, [airports, originValue, allFlights]); // Add allFlights to dependency array
+        return baseOptions;
+    }, [airports, originValue, allFlights]);
 
     // Custom Listbox component with animation
     const AnimatedListBox = forwardRef<HTMLUListElement, AnimatedListBoxProps>(
@@ -141,8 +125,17 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({
                     ref={ref}
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
-                    {...other} // Spread all other props
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    style={{
+                        maxHeight: '280px',
+                        overflowY: 'auto',
+                        padding: '4px',
+                        backgroundColor: 'var(--mui-palette-background-paper, #fff)',
+                        borderRadius: '8px',
+                        listStyle: 'none'
+                        // zIndex: 1301, // Popper usually handles zIndex, but can be set if needed
+                    }}
+                    {...other} // Spread all other props, including className from Autocomplete
                 >
                     {children}
                 </motion.ul>
@@ -153,7 +146,7 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({
     // Validation function
     const validateForm = (): Record<string, string> => {
         const errors: Record<string, string> = {};
-        const [startDate, endDate] = formData.dateRange; // Destructure date range
+        const { startDate, endDate, tripType } = formData;
 
         if (!originValue) {
             errors.origin = "Origin airport is required.";
@@ -162,16 +155,17 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({
             errors.destination = "Destination airport is required.";
         }
         if (!startDate || !isValid(startDate)) {
-            errors.dateRange = "Valid departure date is required.";
+            errors.startDate = "Valid departure date is required.";
         }
 
-        if (endDate && !isValid(endDate)) {
-            errors.dateRange = "Return date is invalid.";
-        } else if (endDate && startDate && !isAfter(endDate, startDate)) {
-            errors.dateRange = "Return date must be after departure date.";
+        if (tripType === 'round-trip') {
+            if (!endDate || !isValid(endDate)) {
+                errors.endDate = "Valid return date is required for round trip.";
+            } else if (startDate && endDate && !isAfter(endDate, startDate)) {
+                errors.endDate = "Return date must be after departure date.";
+            }
         }
 
-        // Check if origin and destination are the same
         if (originValue && destinationValue && originValue.code === destinationValue.code) {
             errors.destination = "Destination cannot be the same as origin.";
         }
@@ -186,272 +180,324 @@ const FlightSearchForm: React.FC<FlightSearchFormProps> = ({
     // Handle form submission
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setError(null); // Clear general submission error
+        setError(null);
 
         const validationErrors = validateForm();
-        setFieldErrors(validationErrors); // Set field errors
+        setFieldErrors(validationErrors);
 
         if (Object.keys(validationErrors).length > 0) {
-            console.log("Validation Errors:", validationErrors);
-            return; // Stop submission if validation fails
+            // console.log("Validation Errors:", validationErrors); // Removed
+            return;
         }
 
-        // If validation passes, ensure field errors are cleared
-        setFieldErrors({}); // Clear any lingering field errors
+        setFieldErrors({});
 
-        const [startDate, endDate] = formData.dateRange; // Destructure date range
+        const { startDate, endDate, tripType } = formData;
 
         const searchPayload: SearchCriteria = {
-            origin: originValue!.code, // Use non-null assertion as validation passed
-            destination: destinationValue!.code, // Use non-null assertion as validation passed
-            departureDate: format(startDate!, 'yyyy-MM-dd'), // Format start date
-            returnDate: endDate ? format(endDate, 'yyyy-MM-dd') : undefined, // Format end date if exists
-            passengers: Number(formData.passengers) || 1, // Ensure passengers is a number
+            origin: originValue!.code,
+            destination: destinationValue!.code,
+            departureDate: format(startDate!, 'yyyy-MM-dd'),
+            returnDate: tripType === 'round-trip' && endDate ? format(endDate, 'yyyy-MM-dd') : undefined,
+            passengers: Number(formData.passengers) || 1,
+            tripType: formData.tripType,
+            travelClass: formData.travelClass,
         };
 
-        console.log('Form submitted with:', searchPayload);
+        // console.log('Form submitted with:', searchPayload); // Removed
 
         try {
             onSearchSubmit(searchPayload); // Pass the constructed payload
-        } catch (err) {
+        } catch (_error: unknown) {
+            console.error('Error during form submission:', _error);
             setError('An error occurred during submission.'); // Set general error
-            console.error(err);
         }
     };
 
+    // Common styles for TextFields
+    const textFieldSx = {
+        '& .MuiOutlinedInput-root': {
+            borderRadius: '8px',
+            backgroundColor: 'var(--mui-palette-background-paper, #fff)', // Or a very light grey for inputs
+            // For a flatter look, can make default border less prominent
+            // borderColor: 'transparent', 
+            '& .MuiOutlinedInput-notchedOutline': {
+                transition: 'all 0.4s ease-in-out',
+                borderColor: 'var(--mui-palette-divider, rgba(0, 0, 0, 0.08))', // Lighter default border
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'var(--mui-palette-primary-light,rgb(100, 246, 129))',
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'var(--primary-color)', // Use the CSS var for Transavia green
+                borderWidth: '1.5px', // Slightly thicker focus border
+            },
+        },
+        '& .MuiInputLabel-outlined': {
+            transition: 'all 0.4s ease-in-out',
+            color: 'var(--mui-palette-text-secondary, rgba(0, 0, 0, 0.6))',
+        },
+        '& .MuiInputLabel-outlined.Mui-focused': {
+            color: 'var(--primary-color)', // Use the CSS var for Transavia green
+        }
+    };
+
+    const handleSwapAirports = () => {
+        const currentOriginValue = originValue;
+        const currentOriginInput = originInputValue;
+
+        setOriginValue(destinationValue);
+        setOriginInputValue(destinationInputValue);
+
+        setDestinationValue(currentOriginValue);
+        setDestinationInputValue(currentOriginInput);
+    };
+
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
             <Box
                 component="form"
                 onSubmit={handleSubmit}
-                className={styles.flightSearchForm} // Apply SCSS module class
+                // className={styles.flightSearchForm} // Consider removing if styles conflict or are fully managed by sx
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 2, // Spacing between elements
-                    p: 3, // Padding
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    opacity: isLoading ? 0.7 : 1, // Visual cue for loading
-                    pointerEvents: isLoading ? 'none' : 'auto', // Disable interaction
+                    gap: 0.5, // Reduced gap
+                    p: { xs: 1.5, sm: 2 }, // Reduced padding
+                    backgroundColor: '#ffffff', // Explicit white background for the form card
+                    borderRadius: '12px', // Softer, larger border radius for the card
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)', // Softer shadow for a modern feel
+                    opacity: isLoading ? 0.7 : 1,
+                    pointerEvents: isLoading ? 'none' : 'auto',
+                    width: '80%',
+                    boxSizing: 'border-box',
                 }}
                 noValidate
                 autoComplete="off"
             >
-                <Grid container spacing={2}>
-                    {/* Origin Field - Replaced with Autocomplete */}
-                    <Grid size={{ xs: 12, md: 6 }}>
+                <Stack direction="row" spacing={1} sx={{ mb: 1, alignItems: 'center', flexWrap: 'wrap' }}> {/* Reduced margin bottom */}
+                    <FormControl size="small" sx={{ minWidth: 110, ...textFieldSx }}> {/* Slightly reduced minWidth */}
+                        <InputLabel id="trip-type-label">Trip</InputLabel>
+                        <Select
+                            labelId="trip-type-label"
+                            id="trip-type-select"
+                            value={formData.tripType}
+                            label="Trip"
+                            onChange={(e) => setFormData(prev => ({ ...prev, tripType: e.target.value }))}
+                            disabled={isLoading}
+                        >
+                            <MenuItem value="round-trip">Round trip</MenuItem>
+                            <MenuItem value="one-way">One-way</MenuItem>
+                        </Select>
+                    </FormControl>
+                    <FormControl size="small" sx={{ minWidth: 100, ...textFieldSx }}> {/* Slightly reduced minWidth */}
+                        <InputLabel id="passengers-label">Passengers</InputLabel>
+                        <Select
+                            labelId="passengers-label"
+                            id="passengers-select"
+                            value={String(formData.passengers)}
+                            label="Passengers"
+                            onChange={(e) => setFormData(prev => ({ ...prev, passengers: Number(e.target.value) }))}
+                            disabled={isLoading}
+                        >
+                            {[...Array(9)].map((_, i) => (
+                                <MenuItem key={i + 1} value={i + 1}>{i + 1}</MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <FormControl size="small" sx={{ minWidth: 110, ...textFieldSx }}> {/* Slightly reduced minWidth */}
+                        <InputLabel id="class-label">Class</InputLabel>
+                        <Select
+                            labelId="class-label"
+                            id="class-select"
+                            value={formData.travelClass}
+                            label="Class"
+                            onChange={(e) => setFormData(prev => ({ ...prev, travelClass: e.target.value }))}
+                            disabled={isLoading}
+                        >
+                            <MenuItem value="economy">Economy</MenuItem>
+                            <MenuItem value="premium-economy">Premium Economy</MenuItem>
+                            <MenuItem value="business">Business</MenuItem>
+                            <MenuItem value="first">First</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Stack>
+
+                {/* Main inputs row */}
+                <Grid container spacing={{ xs: 1, sm: 1 }} alignItems="flex-start" sx={{ px: { xs: 0, sm: 0.5 } }}> {/* Changed alignItems to flex-start */}
+                    <Grid size={{ xs: 1, sm: 2.9 }} sx={{ flexGrow: 1.5 }}>
                         <Autocomplete
+                            fullWidth
                             options={originOptions}
                             getOptionLabel={(option) => `${option.name} (${option.code})`}
                             value={originValue}
-                            onChange={(event, newValue) => {
-                                setOriginValue(newValue);
-                            }}
+                            onChange={(event, newValue) => setOriginValue(newValue)}
                             inputValue={originInputValue}
-                            onInputChange={(event, newInputValue) => {
-                                setOriginInputValue(newInputValue);
-                            }}
-                            slots={{ // Use slots prop
-                                listbox: AnimatedListBox // Provide custom animated listbox
-                            }}
+                            onInputChange={(event, newInputValue) => setOriginInputValue(newInputValue)}
+                            slots={{ listbox: AnimatedListBox }}
                             renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Origin Airport"
-                                    name="origin"
-                                    variant="outlined"
-                                    required
-                                    error={!!fieldErrors.origin}
-                                />
+                                <TextField {...params} label="Origin" name="origin" variant="outlined" required error={!!fieldErrors.origin} sx={textFieldSx} />
                             )}
-                            disabled={isLoading} // Disable field when loading
+                            disabled={isLoading}
+                            size="small" // Added for compactness
                         />
-                        <AnimatePresence>
-                            {fieldErrors.origin && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.15 }}
-                                >
-                                    <FormHelperText error className={styles.errorMessage}>
-                                        {fieldErrors.origin}
-                                    </FormHelperText>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                        <Box sx={{ minHeight: '1rem' }}>
+                            <AnimatePresence>
+                                {fieldErrors.origin && (
+                                    <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.15 }}>
+                                        <FormHelperText error sx={{ ml: '14px', fontSize: '0.7rem' }}>{fieldErrors.origin}</FormHelperText>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </Box>
                     </Grid>
-                    {/* Destination Field - Replaced with Autocomplete */}
-                    <Grid size={{ xs: 12, md: 6 }}>
+
+                    <Grid size={{ xs: "auto" }} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: { xs: '0 !important', sm: '0 2px !important' } }}> {/* No md prop here, xs="auto" is fine */}
+                        <IconButton
+                            onClick={handleSwapAirports}
+                            disabled={isLoading}
+                            aria-label="Swap origin and destination"
+                            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '50%', padding: '8px', backgroundColor: 'background.paper', '&:hover': { backgroundColor: 'action.hover' } }}
+                        >
+                            <SwapHorizIcon fontSize="small" />
+                        </IconButton>
+                    </Grid>
+
+                    <Grid size={{ xs: 4, sm: 2.9 }} sx={{ flexGrow: 1.5 }}>
                         <Autocomplete
+                            fullWidth
                             options={destinationOptions}
                             getOptionLabel={(option) => `${option.name} (${option.code})`}
                             value={destinationValue}
-                            onChange={(event, newValue) => {
-                                setDestinationValue(newValue);
-                            }}
+                            onChange={(event, newValue) => setDestinationValue(newValue)}
                             inputValue={destinationInputValue}
-                            onInputChange={(event, newInputValue) => {
-                                setDestinationInputValue(newInputValue);
-                            }}
-                            slots={{ // Use slots prop
-                                listbox: AnimatedListBox // Provide custom animated listbox
-                            }}
+                            onInputChange={(event, newInputValue) => setDestinationInputValue(newInputValue)}
+                            slots={{ listbox: AnimatedListBox }}
                             renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Destination Airport"
-                                    name="destination"
-                                    variant="outlined"
-                                    required
-                                    error={!!fieldErrors.destination}
-                                />
+                                <TextField {...params} label="Destination" name="destination" variant="outlined" required error={!!fieldErrors.destination} sx={textFieldSx} />
                             )}
-                            disabled={isLoading} // Disable field when loading
+                            disabled={isLoading}
+                            size="small" // Added for compactness
                         />
-                        <AnimatePresence>
-                            {fieldErrors.destination && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.15 }}
-                                >
-                                    <FormHelperText error className={styles.errorMessage}>
-                                        {fieldErrors.destination}
-                                    </FormHelperText>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                        <Box sx={{ minHeight: '1rem' }}>
+                            <AnimatePresence>
+                                {fieldErrors.destination && (
+                                    <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.15 }}>
+                                        <FormHelperText error sx={{ ml: '14px', fontSize: '0.7rem' }}>{fieldErrors.destination}</FormHelperText>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </Box>
                     </Grid>
-                    {/* Combined Date Range Picker */}
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <DateRangePicker
-                            localeText={{ start: 'Departure Date', end: 'Return Date' }}
-                            value={formData.dateRange}
-                            onChange={(newValue: DateRange<Date>) => {
-                                setFormData(prevData => ({ ...prevData, dateRange: newValue }));
-                                if (fieldErrors.dateRange) {
-                                    setFieldErrors(prev => ({ ...prev, dateRange: '' }));
-                                }
+
+                    <Grid size={{ xs: 4, sm: 2.7 }} sx={{ flexGrow: 0.75, display: 'flex', flexDirection: 'column' }}>
+                        <DatePicker
+                            label="Departure"
+                            value={formData.startDate}
+                            onChange={(newValue) => {
+                                setFormData(prev => ({ ...prev, startDate: newValue, endDate: (newValue && prev.endDate && isBefore(prev.endDate, newValue)) ? null : prev.endDate }));
+                                if (fieldErrors.startDate) setFieldErrors(prev => ({ ...prev, startDate: '' }));
+                                if (fieldErrors.endDate && newValue && formData.endDate && isBefore(formData.endDate, newValue)) setFieldErrors(prev => ({ ...prev, endDate: 'Return date must be after departure date.' }));
                             }}
-                            minDate={new Date('2022-10-12')}
-                            maxDate={addDays(new Date('2022-10-12'), 90)}
-                            calendars={2}
-                            format="yyyy-MM-dd"
-                            referenceDate={new Date('2022-10-12')}
-                            shouldDisableDate={shouldDisableDateFunc}
+                            shouldDisableDate={shouldDisableStartDate}
+                            minDate={new Date('2022-10-11')}
+                            maxDate={addDays(new Date('2022-10-10'), 60)}
+                            format="EEE, MMM d"
+                            disabled={isLoading}
                             slotProps={{
-                                field: {
-                                    clearable: true,
-                                    onClear: () => setFormData(prev => ({ ...prev, dateRange: [null, null] }))
-                                },
                                 textField: {
-                                    error: !!fieldErrors.dateRange,
-                                    name: 'dateRange', // for validation key
-                                    // Removed conditional required logic
-                                }
-                            }}
-                            sx={{ width: '100%' }}
-                            disabled={isLoading} // Disable field when loading
-                        />
-                        <AnimatePresence>
-                            {fieldErrors.dateRange && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.15 }}
-                                >
-                                    <FormHelperText error className={styles.errorMessage}>
-                                        {fieldErrors.dateRange}
-                                    </FormHelperText>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </Grid>
-                    {/* Passengers Field - Now takes up the other half */}
-                    <Grid size={{ xs: 12, md: 6 }}>
-                        <TextField
-                            fullWidth
-                            label="Passengers"
-                            name="passengers"
-                            value={formData.passengers}
-                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                                const rawValue = event.target.value;
-                                let finalValue: number = 0; // Default to 0
-                                // Allow only digits
-                                const numericValue = rawValue.replace(/\D/g, '');
-                                if (numericValue === '') {
-                                    finalValue = 0;
-                                    event.target.value = '0';
-                                } else {
-                                    const parsedValue = parseInt(numericValue, 10);
-                                    // parseInt('0' ) is 0, parseInt('05') is 5
-                                    finalValue = isNaN(parsedValue) ? 0 : parsedValue;
-                                    // Ensure non-negative (though min:1 should handle this)
-                                    finalValue = Math.max(0, finalValue);
-                                    event.target.value = finalValue.toString();
-                                }
-                                // Update form state
-                                setFormData(prevData => ({
-                                    ...prevData,
-                                    passengers: finalValue,
-                                }));
-                                // Clear passenger error on change
-                                if (fieldErrors.passengers) {
-                                    setFieldErrors(prev => ({ ...prev, passengers: '' }));
-                                }
-                            }}
-                            variant="outlined"
-                            type="number" // Keep type number for native controls, but manage value strictly
-                            InputProps={{ inputProps: { min: 1 } }}
-                            required
-                            error={!!fieldErrors.passengers}
-                            disabled={isLoading} // Disable field when loading
-                        />
-                        <AnimatePresence>
-                            {fieldErrors.passengers && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    transition={{ duration: 0.15 }}
-                                >
-                                    <FormHelperText error className={styles.errorMessage}>
-                                        {fieldErrors.passengers}
-                                    </FormHelperText>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </Grid>
-                    {/* Empty Grid item to push button to the right on md+ screens */}
-                    <Grid size={{ xs: 0, md: 6 }} />
-                    {/* Submit Button - Corrected Grid */}
-                    <Grid size={{ xs: 12 }} sx={{ textAlign: 'right', mt: 1 }}>
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            disabled={isLoading} // Use parent's isLoading
-                            sx={{
-                                minWidth: 150, // Give button some minimum width
-                                transition: 'filter 0.2s ease-in-out', // Add transition
-                                '&:hover': {
-                                    filter: 'brightness(0.9)', // Slightly darken on hover
+                                    fullWidth: true, variant: 'outlined', required: true, error: !!fieldErrors.startDate,
+                                    sx: { ...textFieldSx, '& .MuiInputBase-input': { fontSize: '0.875rem' } }, name: 'startDate',
+                                    size: "small" // Added for compactness
                                 },
+                                day: { sx: { '&.Mui-selected': { backgroundColor: 'var(--primary-color)', color: 'var(--text-on-primary)' } } }
                             }}
-                        >
-                            {isLoading ? <CircularProgress size={24} /> : 'Search Flights'}
-                        </Button>
+                        />
+                        <Box sx={{ minHeight: '1rem' }}>
+                            <AnimatePresence>
+                                {fieldErrors.startDate && (
+                                    <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.15 }}>
+                                        <FormHelperText error sx={{ ml: '14px', fontSize: '0.7rem' }}>{fieldErrors.startDate}</FormHelperText>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </Box>
+                    </Grid>
+
+                    <Grid size={{ xs: 4, sm: 2.7 }} sx={{ flexGrow: 0.75, display: 'flex', flexDirection: 'column', visibility: formData.tripType === 'one-way' ? 'hidden' : 'visible' }}>
+                        <DatePicker
+                            label="Return"
+                            value={formData.endDate}
+                            onChange={(newValue) => {
+                                setFormData(prev => ({ ...prev, endDate: newValue }));
+                                if (fieldErrors.endDate) setFieldErrors(prev => ({ ...prev, endDate: '' }));
+                            }}
+                            shouldDisableDate={shouldDisableEndDate}
+                            minDate={formData.startDate ? addDays(formData.startDate, 1) : undefined}
+                            maxDate={addDays(new Date('2022-10-12'), 90)}
+                            format="EEE, MMM d"
+                            disabled={isLoading || formData.tripType === 'one-way' || !formData.startDate}
+                            slotProps={{
+                                textField: {
+                                    fullWidth: true, variant: 'outlined', required: formData.tripType === 'round-trip', error: !!fieldErrors.endDate,
+                                    sx: { ...textFieldSx, '& .MuiInputBase-input': { fontSize: '0.875rem' } }, name: 'endDate',
+                                    size: "small" // Added for compactness
+                                },
+                                day: { sx: { '&.Mui-selected': { backgroundColor: 'var(--primary-color)', color: 'var(--text-on-primary)' } } }
+                            }}
+                        />
+                        <Box sx={{ minHeight: '1rem' }}>
+                            <AnimatePresence>
+                                {fieldErrors.endDate && (
+                                    <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.15 }}>
+                                        <FormHelperText error sx={{ ml: '14px', fontSize: '0.7rem' }}>{fieldErrors.endDate}</FormHelperText>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </Box>
                     </Grid>
                 </Grid>
 
-                {/* Error Message - Moved outside the main grid for better layout */}
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, mb: 0.5 }}> {/* Adjusted margins for button */}
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        disabled={isLoading}
+                        startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : undefined}
+                        sx={{
+                            minWidth: { xs: '80%', sm: 180 }, // Adjusted minWidth for button
+                            height: 44, // Slightly reduced height
+                            fontSize: '0.95rem', // Slightly reduced font size
+                            fontWeight: 'medium',
+                            borderRadius: '8px',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+                            textTransform: 'none', // Keeping text as is, not uppercase
+                            backgroundColor: 'var(--primary-color)', // Explicitly Transavia green
+                            color: 'var(--text-on-primary)',
+                            transition: 'all 0.4s ease-in-out',
+                            '&:hover': {
+                                backgroundColor: 'var(--button-primary-hover)', // From globals.scss
+                                boxShadow: '0 4px 8px rgba(0,0,0,0.12)',
+                                transform: 'translateY(-2px)',
+                            },
+                            '&:active': {
+                                transform: 'translateY(0px)',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.08)',
+                            },
+                            '&.Mui-disabled': { // Styles for disabled state
+                                backgroundColor: 'rgba(0,0,0,0.12)',
+                                color: 'rgba(0,0,0,0.26)',
+                                boxShadow: 'none',
+                            }
+                        }}
+                    >
+                        {isLoading ? 'Searching...' : 'Search Flights'}
+                    </Button>
+                </Box>
+
                 {error && (
-                    <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>
+                    <Alert severity="error" sx={{ mt: 2, borderRadius: '8px' }}>{error}</Alert>
                 )}
             </Box>
         </motion.div>
