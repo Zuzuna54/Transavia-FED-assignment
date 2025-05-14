@@ -1,0 +1,60 @@
+graph TD
+    subgraph "SearchClientWrapper State (@/components/organisms/SearchClientWrapper/SearchClientWrapper.tsx)"
+        direction LR
+        SCW_State["useState Hooks in SearchClientWrapper"];
+        SCW_State --> S1["filteredFlights: FlightOffer[]
+(Updated by handleSearch after filtering)"];
+        SCW_State --> S2["isLoading: boolean
+(Set during handleSearch)"];
+        SCW_State --> S3["hasSearched: boolean
+(Set to true after first search attempt)"];
+        
+        S1 -- "Passed as 'flights' prop" --> FR["FlightResults"];
+        S2 -- "Passed as 'isLoading' prop" --> FSF["FlightSearchForm"];
+        S2 -- "Passed as 'isLoading' prop" --> FR;
+        S3 -- "Passed as 'hasSearched' prop" --> FR;
+
+        Memo1["airportMap: Map<string, Airport>
+(Derived via useMemo from 'airports' prop)"];
+        Memo1 -- "Passed as 'airportMap' prop" --> FR;
+    end
+
+    subgraph "FlightSearchForm State (@/components/organisms/FlightSearchForm/FlightSearchForm.tsx)"
+        direction LR
+        FSF_State["useState Hooks in FlightSearchForm"];
+        FSF_State --> FS1["formData: FormState
+{ startDate, endDate, passengers, tripType, travelClass }"];
+        FSF_State --> FS2["originValue: Airport | null"];
+        FSF_State --> FS3["destinationValue: Airport | null"];
+        FSF_State --> FS4["originInputValue: string"];
+        FSF_State --> FS5["destinationInputValue: string"];
+        FSF_State --> FS6["error: string | null (General form error)"];
+        FSF_State --> FS7["fieldErrors: Record<string, string>
+(Validation errors for specific fields)"];
+        
+        FS1 & FS2 & FS3 & FS7 -- "Used for form validation" --> Validate["validateForm() internal method"];
+        FS1 & FS2 & FS3 -- "Packaged into SearchCriteria" --> HandleSubmit["handleSubmit() internal method"];
+        HandleSubmit -- "onSearchSubmit(criteria)" --> SCW_Parent["SearchClientWrapper (via props)"];
+
+        MemoFS1["availableDepartureDates: Set<string>
+(Derived via useMemo from origin, destination, allFlights)"];
+        MemoFS1 -- "Used by shouldDisableStartDate" --> DatePickers;
+        MemoFS2["originOptions: Airport[]
+(Derived via useMemo from airports, destinationValue)"];
+        MemoFS2 -- "Populates Origin Autocomplete" --> Autocompletes;
+        MemoFS3["destinationOptions: Airport[]
+(Derived via useMemo from airports, originValue, allFlights)"];
+        MemoFS3 -- "Populates Destination Autocomplete" --> Autocompletes;
+    end
+
+    classDef component fill:#CDE5FF,stroke:#1A4E8A,color:#000;
+    classDef stateHook fill:#E6E6FA,stroke:#483D8B,color:#000;
+    classDef memoHook fill:#E0FFFF,stroke:#008080,color:#000;
+    classDef propConnection style PQR_line stroke:#228B22,stroke-width:2px;
+    classDef internalLogic fill:#FFF0F5,stroke:#DB7093,color:#000;
+
+    class SCW_State,FSF_State stateHook;
+    class Memo1,MemoFS1,MemoFS2,MemoFS3 memoHook;
+    class FSF,FR,SCW_Parent,DatePickers,Autocompletes component;
+    class Validate,HandleSubmit internalLogic;
+    class S1,S2,S3,FS1,FS2,FS3,FS4,FS5,FS6,FS7 stateHook; 

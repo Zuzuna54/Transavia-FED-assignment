@@ -1,0 +1,42 @@
+graph TD
+    subgraph "Global Styles & Theme"
+        A["globals.scss<br/>(Global CSS rules, CSS variables like --primary-color)"] --> App;
+        B["styles/theme.ts<br/>(MUI Theme Configuration: createTheme, palette, typography, components overrides)"] --> TR["ThemeRegistry.tsx"];
+        TR -- "ThemeProvider, CssBaseline" --> App;
+    end
+
+    subgraph "Component-Level Styling"
+        C["SCSS Modules<br/>(e.g., FlightResults.module.scss, page.module.scss)<br/>- Localized class names<br/>- Used for structural component styles"] --> Comp1["React Component (e.g., FlightResults.tsx)"];
+        D["MUI sx Prop<br/>(Inline styles, responsive styles, theme access)<br/>- Used for dynamic styling, fine-tuning MUI components, layout adjustments"] --> Comp2["React Component (e.g., FlightSearchForm.tsx, Box, Grid)"];
+        E["MUI Styled Components API (styled())<br/>(Not extensively used, but available via MUI)"] --> Comp3["React Component (Hypothetical usage)"];
+    end
+
+    subgraph "Application & MUI Components"
+        App["RootLayout / Main Application UI"];
+        MUI_Comp["MUI Components<br/>(Button, TextField, DatePicker, Card, etc.)"];
+    end
+
+    %% Relationships
+    App --> MUI_Comp;
+    Comp1 --> RenderedHTML;
+    Comp2 --> RenderedHTML;
+    Comp3 --> RenderedHTML;
+    MUI_Comp --> RenderedHTML["Rendered HTML Elements"];
+
+    %% Styling Application Flow
+    B --> MUI_Comp_Styled["MUI Components receive theme styles"];
+    A --> PageHTML["HTML elements receive global styles"];
+    C --> SpecificElementStyles["Specific elements styled by SCSS Modules"];
+    D --> SpecificElementStyles;
+    
+    classDef globalStyle fill:#E8DAEF,stroke:#8E44AD,color:#000;
+    classDef themeConfig fill:#D4E6F1,stroke:#2980B9,color:#000;
+    classDef componentStyle fill:#FEF9E7,stroke:#F1C40F,color:#000;
+    classDef app fill:#D1F2EB,stroke:#16A085,color:#000;
+    classDef rendered fill:#FDEDEC,stroke:#E74C3C,color:#000;
+
+    class A,B globalStyle;
+    class TR themeConfig;
+    class C,D,E componentStyle;
+    class App,MUI_Comp app;
+    class RenderedHTML,PageHTML,SpecificElementStyles,MUI_Comp_Styled rendered; 

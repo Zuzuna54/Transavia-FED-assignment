@@ -1,0 +1,51 @@
+graph LR
+    subgraph "page.tsx (Server)"
+        direction LR
+        dataSource["airports.json, flights.json"] --> pageTsx["page.tsx"];
+        pageTsx -- "airports, allFlights" --> SearchClientWrapper;
+    end
+
+    subgraph "SearchClientWrapper (Client)"
+        direction LR
+        SearchClientWrapper --> FlightSearchForm;
+        SearchClientWrapper --> FlightResults;
+        
+        SearchClientWrapper_State[State: filteredFlights, isLoading, hasSearched] -.-> FlightSearchForm;
+        SearchClientWrapper_State -.-> FlightResults;
+        SearchClientWrapper_airportMap["airportMap (derived from airports prop)"] -.-> FlightResults;
+    end
+
+    subgraph "FlightSearchForm (Client)"
+        direction LR
+        FlightSearchForm_Props["Props In: <br/> airports <br/> allFlights <br/> isLoading <br/> onSearchSubmit (callback)"];
+        FlightSearchForm_State["Local State: <br/> formData (dates, passengers, etc.) <br/> originValue, destinationValue <br/> fieldErrors"];
+    end
+
+    subgraph "FlightResults (Client)"
+        direction LR
+        FlightResults_Props["Props In: <br/> flights (filteredFlights) <br/> airportMap <br/> isLoading <br/> hasSearched"];
+    end
+
+    %% Prop Connections
+    pageTsx -- "airports" --> FlightSearchForm_Props;
+    pageTsx -- "allFlights" --> FlightSearchForm_Props;
+    SearchClientWrapper_State -- "isLoading" --> FlightSearchForm_Props;
+    SearchClientWrapper -- "onSearchSubmit()" --> FlightSearchForm_Props;
+    
+    SearchClientWrapper_State -- "flights (as filteredFlights)" --> FlightResults_Props;
+    SearchClientWrapper_airportMap -- "airportMap" --> FlightResults_Props;
+    SearchClientWrapper_State -- "isLoading" --> FlightResults_Props;
+    SearchClientWrapper_State -- "hasSearched" --> FlightResults_Props;
+
+    classDef serverComp fill:#D1E8CF,stroke:#245719,color:#000;
+    classDef clientComp fill:#CDE5FF,stroke:#1A4E8A,color:#000;
+    classDef props fill:#FFFACD,stroke:#B8860B,color:#000,stroke-dasharray: 5 5;
+    classDef state fill:#E6E6FA,stroke:#483D8B,color:#000,stroke-dasharray: 5 5;
+    classDef dataSource fill:#F0E68C,stroke:#BDB76B,color:#000;
+
+    class pageTsx serverComp;
+    class SearchClientWrapper,FlightSearchForm,FlightResults clientComp;
+    class FlightSearchForm_Props,FlightResults_Props props;
+    class SearchClientWrapper_State,FlightSearchForm_State state;
+    class dataSource dataSource;
+    class SearchClientWrapper_airportMap props; 

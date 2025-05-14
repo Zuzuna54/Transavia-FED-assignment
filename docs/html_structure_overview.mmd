@@ -1,0 +1,61 @@
+graph TD
+    direction LR
+    HTML["html (lang='en')"] --> BODY["body.inter (height: 100vh, width: 100vw, bg: light-greenish)"];
+    BODY --> ThemeRegistry["ThemeRegistry (MUI CacheProvider, ThemeProvider, CssBaseline, LocalizationProvider)"];
+    ThemeRegistry --> RootLayoutChildren;
+    RootLayoutChildren --> MainPage["main.page_main"];
+    MainPage --> ContainerDiv["div.page_container"];
+    ContainerDiv --> AppTitle["h1.page_appTitle 'Flight Search'"];
+    ContainerDiv --> ContentBox["Box (my: 4, width: 100%)"];
+    ContentBox --> SuspenseWrapper["Suspense (fallback: LoadingIndicator)"];
+    SuspenseWrapper --> SearchClientWrapper["SearchClientWrapper"];
+
+    SearchClientWrapper --> FSF_MotionDiv["motion.div (FlightSearchForm Wrapper)"];
+    FSF_MotionDiv --> FSF_FormBox["Box (FlightSearchForm form element)"];
+    FSF_FormBox --> FSF_Stack_TripType["Stack (Trip Type, Passengers, Class Selects)"];
+    FSF_Stack_TripType --> FSF_FormControl_Trip["FormControl (Trip)"];
+    FSF_FormControl_Trip --> FSF_Select_Trip["Select (Trip Type)"];
+    FSF_Stack_TripType --> FSF_FormControl_Pax["FormControl (Passengers)"];
+    FSF_FormControl_Pax --> FSF_Select_Pax["Select (Passengers)"];
+    FSF_Stack_TripType --> FSF_FormControl_Class["FormControl (Class)"];
+    FSF_FormControl_Class --> FSF_Select_Class["Select (Travel Class)"];
+
+    FSF_FormBox --> FSF_Grid_Inputs["Grid container (Main Inputs)"];
+    FSF_Grid_Inputs --> FSF_Grid_Origin["Grid item (Origin Autocomplete)"];
+    FSF_Grid_Origin --> FSF_Autocomplete_Origin["Autocomplete (Origin)"];
+    FSF_Grid_Inputs --> FSF_Grid_Swap["Grid item (Swap Button)"];
+    FSF_Grid_Swap --> FSF_IconButton_Swap["IconButton (SwapHorizIcon)"];
+    FSF_Grid_Inputs --> FSF_Grid_Dest["Grid item (Destination Autocomplete)"];
+    FSF_Grid_Dest --> FSF_Autocomplete_Dest["Autocomplete (Destination)"];
+    FSF_Grid_Inputs --> FSF_Grid_DepDate["Grid item (Departure DatePicker)"];
+    FSF_Grid_DepDate --> FSF_DatePicker_Dep["DatePicker (Departure)"];
+    FSF_Grid_Inputs --> FSF_Grid_RetDate["Grid item (Return DatePicker, conditional)"];
+    FSF_Grid_RetDate --> FSF_DatePicker_Ret["DatePicker (Return)"];
+
+    FSF_FormBox --> FSF_Box_SubmitButton["Box (Search Button Wrapper)"];
+    FSF_Box_SubmitButton --> FSF_Button_Search["Button 'Search Flights'"];
+    FSF_FormBox --> FSF_Alert_Error["Alert (Error message, conditional)"];
+
+    SearchClientWrapper --> FR_MotionDiv["motion.div (FlightResults Wrapper)"];
+    FR_MotionDiv --> FR_Box_Container["Box.resultsContainer (FlightResults main container)"];
+    FR_Box_Container --> FR_LoadingIndicator["LoadingIndicator (conditional)"];
+    FR_Box_Container --> FR_Message_Initial["Typography 'Please enter search...' (conditional)"];
+    FR_Box_Container --> FR_Message_NoResults["Typography 'No flights found...' (conditional)"];
+    FR_Box_Container --> FR_Typography_Available["Typography 'Available Flights (count)' (conditional)"];
+    FR_Box_Container --> FR_Grid_ResultsContainer["Grid container (for flight cards, conditional)"];
+    FR_Grid_ResultsContainer --> FR_Loop_FlightCard["motion.div (FlightCard loop item)"];
+    FR_Loop_FlightCard --> FR_Card["Card.flightCard"];
+    FR_Card --> FR_CardContent["CardContent"];
+    FR_CardContent --> FR_FlightTakeoffIcon["FlightTakeoffIcon"];
+    FR_CardContent --> FR_Grid_CardDetails["Grid container (Details within card)"];
+    %% Further breakdown of card details can be added if needed but keeping it high-level
+
+    classDef htmlElement fill:#FFF5E1,stroke:#D4AC0D,color:#000;
+    classDef muiComponent fill:#EBF5FB,stroke:#2E86C1,color:#000;
+    classDef motionComponent fill:#E8F8F5,stroke:#1ABC9C,color:#000;
+    classDef structure fill:#F4ECF7,stroke:#8E44AD,color:#000;
+
+    class HTML,BODY,MainPage,ContainerDiv,AppTitle htmlElement;
+    class ThemeRegistry,ContentBox,SuspenseWrapper,SearchClientWrapper,FSF_FormBox,FSF_Stack_TripType,FSF_FormControl_Trip,FSF_Select_Trip,FSF_FormControl_Pax,FSF_Select_Pax,FSF_FormControl_Class,FSF_Select_Class,FSF_Grid_Inputs,FSF_Grid_Origin,FSF_Autocomplete_Origin,FSF_Grid_Swap,FSF_IconButton_Swap,FSF_Grid_Dest,FSF_Autocomplete_Dest,FSF_Grid_DepDate,FSF_DatePicker_Dep,FSF_Grid_RetDate,FSF_DatePicker_Ret,FSF_Box_SubmitButton,FSF_Button_Search,FSF_Alert_Error,FR_Box_Container,FR_LoadingIndicator,FR_Message_Initial,FR_Message_NoResults,FR_Typography_Available,FR_Grid_ResultsContainer,FR_Card,FR_CardContent,FR_FlightTakeoffIcon,FR_Grid_CardDetails muiComponent;
+    class FSF_MotionDiv,FR_MotionDiv,FR_Loop_FlightCard motionComponent;
+    class RootLayoutChildren structure; 

@@ -1,0 +1,57 @@
+graph TD
+    A["page.tsx (Server Component)"] --> B["SearchClientWrapper (Client Component)"];
+    B --> C["FlightSearchForm"];
+    B --> D["FlightResults"];
+    D --> E["LoadingIndicator (Conditional)"];
+    C --> F["MUI Autocomplete (Origin)"];
+    C --> G["MUI Autocomplete (Destination)"];
+    C --> H["MUI DatePicker (Departure)"];
+    C --> I["MUI DatePicker (Return)"];
+    C --> J["MUI Button (Search)"];
+    D --> K["FlightCard (Loop item, conceptual)"];
+
+    subgraph "Page Level"
+        A
+    end
+
+    subgraph "Client Wrapper"
+        B
+    end
+
+    subgraph "Form Components"
+        C
+        F
+        G
+        H
+        I
+        J
+    end
+
+    subgraph "Results Components"
+        D
+        E
+        K
+    end
+
+    %% Interactions
+    J -- "onSubmit" --> C;
+    C -- "onSearchSubmit(criteria)" --> B;
+    B -- "isLoading, hasSearched, filteredFlights" --> D;
+    B -- "airports, allFlights, isLoading" --> C;
+
+    style A fill:#D1E8CF,stroke:#333,stroke-width:2px
+    style B fill:#CDE5FF,stroke:#333,stroke-width:2px
+    style C fill:#FFF2CC,stroke:#333,stroke-width:2px
+    style D fill:#FFE6CC,stroke:#333,stroke-width:2px
+    style E fill:#FFCCCC,stroke:#333,stroke-width:2px
+    style K fill:#E0E0E0,stroke:#333,stroke-width:1px,stroke-dasharray: 5 5
+
+    classDef serverComponent fill:#D1E8CF,stroke:#245719,stroke-width:2px,color:#000;
+    classDef clientComponent fill:#CDE5FF,stroke:#1A4E8A,stroke-width:2px,color:#000;
+    classDef organism fill:#FFF2CC,stroke:#7A5D00,stroke-width:2px,color:#000;
+    classDef atom fill:#FFCCCC,stroke:#7A0000,stroke-width:2px,color:#000;
+
+    class A serverComponent;
+    class B clientComponent;
+    class C,D organism;
+    class E atom; 

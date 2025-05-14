@@ -1,0 +1,48 @@
+graph TD
+    subgraph "Data Loading (@/lib/data-loader.ts)"
+        direction LR
+        L_DL["loadAirports() / loadFlights()
+// (Called in page.tsx)"] --> FS1["fs.readFileSync(path.join(...))"];
+        FS1 --> JSONP["JSON.parse()"];
+        JSONP --> R_Data["Returns Airport[] or FlightOffer[]"];
+    end
+
+    subgraph "Flight Filtering (@/lib/flight-utils.ts)"
+        direction LR
+        L_FU["filterFlights(criteria, allFlights)
+// (Called in SearchClientWrapper)"] --> Loop["Loops through allFlights"];
+        Loop --> C_Origin["Compare flight.departureAirport.locationCode with criteria.origin"];
+        Loop --> C_Dest["Compare flight.arrivalAirport.locationCode with criteria.destination"];
+        Loop --> C_Date["isSameDay(parseISO(flight.departureDateTime), criteria.departureDate)"];
+        C_Date --> D_FNS1["date-fns: parseISO"];
+        C_Date --> D_FNS2["date-fns: isSameDay"];
+        C_Origin & C_Dest & C_Date --> AddToResults["If all match, add to results array"];
+        AddToResults --> R_Filtered["Returns filtered FlightOffer[]"];
+    end
+
+    subgraph "Formatting (@/lib/formatters.ts)"
+        direction LR
+        L_FO_Currency["formatCurrency(amount, currencyCode)
+// (Called in FlightResults)"] --> INTL_Currency["new Intl.NumberFormat().format()"];
+        L_FO_DateTime["formatDateTime(dateString, formatString)
+// (Called in FlightResults - indirectly via date-fns format)"] --> D_FNS_Format["date-fns: format(parseISO(dateString), formatString)"];
+    end
+    
+    subgraph "Component Interactions (Simplified)"
+        direction LR
+        FSF_Submit["FlightSearchForm: handleSubmit()"] --> Validate["validateForm()"];
+        Validate --> SCW_onSearch["props.onSearchSubmit(searchCriteria)
+// (Calls SearchClientWrapper.handleSearch)"];
+        SCW_onSearch --> SCW_HS["SearchClientWrapper: handleSearch(criteria)"];
+        SCW_HS --> L_FU;
+    end
+
+    classDef libModule fill:#D5F5E3,stroke:#1E8449,color:#000;
+    classDef componentMethod fill:#D6EAF8,stroke:#2E86C1,color:#000;
+    classDef externalLib fill:#FCF3CF,stroke:#B7950B,color:#000;
+    classDef internalCall fill:#EBDEF0,stroke:#884EA0,color:#000;
+
+    class L_DL,L_FU,L_FO_Currency,L_FO_DateTime libModule;
+    class FSF_Submit,SCW_onSearch,SCW_HS,Validate componentMethod;
+    class FS1,JSONP,Loop,C_Origin,C_Dest,C_Date,AddToResults,R_Data,R_Filtered internalCall;
+    class D_FNS1,D_FNS2,D_FNS_Format,INTL_Currency externalLib; 

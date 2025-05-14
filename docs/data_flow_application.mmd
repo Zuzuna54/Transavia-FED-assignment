@@ -1,0 +1,52 @@
+graph TD
+    subgraph "Data Sources (Server-Side)"
+        A1["airports.json"] --> PA["page.tsx: loadAirports()"];
+        A2["flights.json"] --> PF["page.tsx: loadFlights()"];
+    end
+
+    subgraph "Page Initialization (Server -> Client)"
+        PA --> D1["airports data (array)"];
+        PF --> D2["allFlights data (array)"];
+        D1 --> SCW_Props["SearchClientWrapper Props"];
+        D2 --> SCW_Props;
+    end
+
+    subgraph "SearchClientWrapper (Client-Side Logic)"
+        SCW_Props --> SCW["SearchClientWrapper"];
+        SCW -- "Initial props" --> AM["airportMap (derived via useMemo)"];
+        SCW -- "Initial props" --> AFS_Props["FlightSearchForm Props (airports, allFlights)"];
+        
+        UserInput["User interacts with FlightSearchForm"] --> FSF["FlightSearchForm"];
+        FSF -- "onSubmit(searchCriteria)" --> SCW_handleSearch["SearchClientWrapper: handleSearch(criteria)"];
+        
+        SCW_handleSearch -- "Sets isLoading=true" --> AppState;
+        SCW_handleSearch -- "criteria, allFlights" --> FilterUtil["flight-utils: filterFlights()"];
+        FilterUtil --> FilteredResults["filteredFlights (array)"];
+        FilteredResults --> SCW_updateState["SearchClientWrapper: setFilteredFlights()"];
+        SCW_updateState -- "Updates filteredFlights in state" --> AppState;
+        SCW_handleSearch -- "Sets isLoading=false, hasSearched=true" --> AppState;
+    end
+
+    subgraph "State & UI Update (Client-Side)"
+        AppState[Application State in SearchClientWrapper<br/>- isLoading<br/>- hasSearched<br/>- filteredFlights];
+        AppState -- "isLoading" --> FSF_UI["FlightSearchForm (UI reflects loading)"];
+        AppState -- "isLoading, hasSearched, filteredFlights" --> FR_Props["FlightResults Props"];
+        AM --> FR_Props;
+        FR_Props --> FR_UI["FlightResults (UI displays results, loading, or messages)"];
+    end
+
+    classDef dataSource fill:#F0E68C,stroke:#BDB76B,color:#000;
+    classDef serverLogic fill:#D1E8CF,stroke:#245719,color:#000;
+    classDef clientLogic fill:#CDE5FF,stroke:#1A4E8A,color:#000;
+    classDef data fill:#FFF0F5,stroke:#DB7093,color:#000;
+    classDef uiComponent fill:#FFFACD,stroke:#B8860B,color:#000;
+    classDef appState fill:#E6E6FA,stroke:#483D8B,color:#000;
+    classDef userInput fill:#FFDAB9,stroke:#FFA500,color:#000;
+
+    class A1,A2 dataSource;
+    class PA,PF serverLogic;
+    class SCW,SCW_handleSearch,SCW_updateState,FilterUtil,AM clientLogic;
+    class D1,D2,FilteredResults,SCW_Props,AFS_Props,FR_Props data;
+    class FSF,FR_UI,FSF_UI uiComponent;
+    class AppState appState;
+    class UserInput userInput; 
